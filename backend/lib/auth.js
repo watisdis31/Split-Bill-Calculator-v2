@@ -18,7 +18,7 @@ function cookieOptions() {
   return {
     httpOnly: true,
     secure: isProduction,
-    // Cross-origin credentialed requests (Vercel frontend → Render API) require SameSite=None.
+    // Cross-origin credentialed requests (Vercel frontend → Vercel API) require SameSite=None.
     sameSite: isProduction ? "none" : "lax",
     path: "/",
     maxAge: SESSION_DAYS * 24 * 60 * 60,
