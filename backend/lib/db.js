@@ -3,6 +3,7 @@ import pg from "pg";
 const { Pool } = pg;
 
 const isProduction = process.env.NODE_ENV === "production";
+const isServerless = Boolean(process.env.VERCEL);
 const connectionString = process.env.DATABASE_URL || "";
 
 const pool = new Pool({
@@ -11,6 +12,10 @@ const pool = new Pool({
     isProduction || connectionString.includes("supabase")
       ? { rejectUnauthorized: false }
       : undefined,
+  // Keep connection count low on Vercel serverless; use Supabase pooler in DATABASE_URL.
+  ...(isServerless
+    ? { max: 1, idleTimeoutMillis: 5000, allowExitOnIdle: true }
+    : {}),
 });
 
 export function query(text, params) {
