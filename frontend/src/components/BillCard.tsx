@@ -20,7 +20,7 @@ export function BillCard({ bill, children }: { bill: BillListItem; children: Rea
           <span className="bill-card-date">{formatDate(bill.createdAt)}</span>
         </div>
       </div>
-      <div className="bill-card-actions actions">{children}</div>
+      <div className="bill-card-actions">{children}</div>
     </section>
   );
 }

@@ -3,8 +3,18 @@ import type { BillCharges, Currency, DiscountTiming, DiscountType } from "../typ
 import {
   calculatePercentage,
   formatChargePercentageIndicator,
+  getDiscountBase,
 } from "../utils/calculations";
-import { minorToInput, parseMoneyInput } from "../utils/currency";
+import { minorToEditableInput, parseMoneyInput } from "../utils/currency";
+
+function percentDiscountToInput(basisPoints: number): string {
+  if (!basisPoints) return "";
+  return String(basisPoints / 100);
+}
+
+function zeroPlaceholder(decimalPlaces: number): string {
+  return decimalPlaces === 0 ? "0" : `0.${"0".repeat(decimalPlaces)}`;
+}
 
 function ChoiceRow<T extends string>({
   label,
@@ -60,33 +70,43 @@ export function ChargesForm({
 }) {
   const isPercent = charges.discountType === "PERCENTAGE";
   const [discountInput, setDiscountInput] = useState(
-    isPercent ? String(charges.discount / 100) : minorToInput(charges.discount, currency.decimalPlaces)
+    isPercent
+      ? percentDiscountToInput(charges.discount)
+      : minorToEditableInput(charges.discount, currency.decimalPlaces)
   );
   const [serviceInput, setServiceInput] = useState(
-    minorToInput(charges.service, currency.decimalPlaces)
+    minorToEditableInput(charges.service, currency.decimalPlaces)
   );
-  const [taxInput, setTaxInput] = useState(minorToInput(charges.tax, currency.decimalPlaces));
+  const [taxInput, setTaxInput] = useState(minorToEditableInput(charges.tax, currency.decimalPlaces));
 
-  const taxPercentage = (() => {
-    const parsed = parseMoneyInput(taxInput, currency.decimalPlaces, { allowZero: true });
-    if (parsed === null) return null;
-    return calculatePercentage(parsed, subtotal);
-  })();
+  const parsedTax = parseMoneyInput(taxInput, currency.decimalPlaces, { allowZero: true });
+  const parsedService = parseMoneyInput(serviceInput, currency.decimalPlaces, { allowZero: true });
+  const parsedFixedDiscount = isPercent
+    ? null
+    : parseMoneyInput(discountInput, currency.decimalPlaces, { allowZero: true });
 
-  const servicePercentage = (() => {
-    const parsed = parseMoneyInput(serviceInput, currency.decimalPlaces, { allowZero: true });
-    if (parsed === null) return null;
-    return calculatePercentage(parsed, subtotal);
-  })();
+  const taxPercentage = parsedTax === null ? null : calculatePercentage(parsedTax, subtotal);
+  const servicePercentage = parsedService === null ? null : calculatePercentage(parsedService, subtotal);
+  const discountPercentage =
+    parsedFixedDiscount === null
+      ? null
+      : calculatePercentage(
+          parsedFixedDiscount,
+          getDiscountBase(subtotal, {
+            ...charges,
+            tax: parsedTax ?? charges.tax,
+            service: parsedService ?? charges.service,
+          })
+        );
 
   useEffect(() => {
     setDiscountInput(
       charges.discountType === "PERCENTAGE"
-        ? String(charges.discount / 100)
-        : minorToInput(charges.discount, currency.decimalPlaces)
+        ? percentDiscountToInput(charges.discount)
+        : minorToEditableInput(charges.discount, currency.decimalPlaces)
     );
-    setServiceInput(minorToInput(charges.service, currency.decimalPlaces));
-    setTaxInput(minorToInput(charges.tax, currency.decimalPlaces));
+    setServiceInput(minorToEditableInput(charges.service, currency.decimalPlaces));
+    setTaxInput(minorToEditableInput(charges.tax, currency.decimalPlaces));
   }, [currency.id, charges.discountType]);
 
   return (
@@ -106,7 +126,7 @@ export function ChargesForm({
                 const parsed = parseMoneyInput(raw, currency.decimalPlaces, { allowZero: true });
                 if (parsed !== null) onChange({ ...charges, tax: parsed });
               }}
-              placeholder={currency.decimalPlaces === 0 ? "52500" : "4.00"}
+              placeholder={zeroPlaceholder(currency.decimalPlaces)}
             />
             <span className="charge-percent" aria-live="polite">
               {formatChargePercentageIndicator(taxPercentage)}
@@ -127,7 +147,7 @@ export function ChargesForm({
                 const parsed = parseMoneyInput(raw, currency.decimalPlaces, { allowZero: true });
                 if (parsed !== null) onChange({ ...charges, service: parsed });
               }}
-              placeholder={currency.decimalPlaces === 0 ? "25000" : "5.00"}
+              placeholder={zeroPlaceholder(currency.decimalPlaces)}
             />
             <span className="charge-percent" aria-live="polite">
               {formatChargePercentageIndicator(servicePercentage)}
@@ -146,7 +166,7 @@ export function ChargesForm({
         ]}
         onChange={(discountType: DiscountType) => {
           onChange({ ...charges, discountType, discount: 0 });
-          setDiscountInput(discountType === "PERCENTAGE" ? "0" : minorToInput(0, currency.decimalPlaces));
+          setDiscountInput("");
         }}
       />
 
@@ -163,7 +183,7 @@ export function ChargesForm({
 
       <div className="field">
         <label htmlFor="discount">{isPercent ? "Discount" : "Discount amount"}</label>
-        <div className={isPercent ? "input-shell" : undefined}>
+        <div className={isPercent ? "input-shell" : "input-shell charge-field-shell"}>
           <input
             id="discount"
             className="input"
@@ -185,9 +205,15 @@ export function ChargesForm({
               const parsed = parseMoneyInput(raw, currency.decimalPlaces, { allowZero: true });
               if (parsed !== null) onChange({ ...charges, discount: parsed });
             }}
-            placeholder={isPercent ? "10" : currency.decimalPlaces === 0 ? "50000" : "5.00"}
+            placeholder={isPercent ? "0" : zeroPlaceholder(currency.decimalPlaces)}
           />
-          {isPercent ? <span className="input-addon">%</span> : null}
+          {isPercent ? (
+            <span className="input-addon">%</span>
+          ) : (
+            <span className="charge-percent" aria-live="polite">
+              {formatChargePercentageIndicator(discountPercentage)}
+            </span>
+          )}
         </div>
       </div>
     </div>

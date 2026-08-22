@@ -1,7 +1,36 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { AlertMessage } from "./Feedback";
+
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M4 7h16M4 12h16M4 17h16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="square"
+      />
+    </svg>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        d="M6 6l12 12M18 6 6 18"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="square"
+      />
+    </svg>
+  );
+}
 
 export function Layout({
   children,
@@ -10,35 +39,125 @@ export function Layout({
   children: ReactNode;
   guest?: boolean;
 }) {
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
+  const location = useLocation();
+  const headerRef = useRef<HTMLElement | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 479px)");
+    function onViewportChange() {
+      if (!media.matches) setMenuOpen(false);
+    }
+    media.addEventListener("change", onViewportChange);
+    return () => media.removeEventListener("change", onViewportChange);
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function onPointerDown(event: MouseEvent) {
+      if (headerRef.current && !headerRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [menuOpen]);
+
+  async function handleLogout() {
+    setMenuOpen(false);
+    await logout();
+  }
 
   return (
     <div className="shell">
-      <header className="header">
+      <header className="header" ref={headerRef}>
         <Link to={user ? "/dashboard" : "/"} className="brand">
-          EasySplitBill
+          EzSplitBill
         </Link>
-        <div className="header-actions">
-          {user ? (
+        <div className="header-end">
+          {!loading && user ? (
+            <span className="user-chip" title={user.username}>
+              @{user.username}
+            </span>
+          ) : null}
+          <div className="header-actions">
+            {loading ? null : user ? (
+              <>
+                <NavLink to="/dashboard" className="btn btn-secondary">
+                  Bills
+                </NavLink>
+                <button type="button" className="btn btn-secondary" onClick={() => void logout()}>
+                  Logout
+                </button>
+              </>
+            ) : guest ? (
+              <>
+                <NavLink to="/login" className="btn btn-secondary">
+                  Login
+                </NavLink>
+                <NavLink to="/register" className="btn">
+                  Register
+                </NavLink>
+              </>
+            ) : null}
+          </div>
+
+          {!loading ? (
             <>
-              <span className="user-chip" title={user.username}>
-                @{user.username}
-              </span>
-              <NavLink to="/dashboard" className="btn btn-secondary">
-                Bills
-              </NavLink>
-              <button type="button" className="btn btn-secondary" onClick={() => void logout()}>
-                Logout
+              <button
+                type="button"
+                className="header-menu-toggle"
+                aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+                aria-expanded={menuOpen}
+                aria-controls="mobile-navigation"
+                onClick={() => setMenuOpen((open) => !open)}
+              >
+                {menuOpen ? <CloseIcon /> : <MenuIcon />}
               </button>
-            </>
-          ) : guest ? (
-            <>
-              <NavLink to="/login" className="btn btn-secondary">
-                Login
-              </NavLink>
-              <NavLink to="/register" className="btn">
-                Register
-              </NavLink>
+              <nav
+                id="mobile-navigation"
+                className={`header-menu${menuOpen ? " is-open" : ""}`}
+                aria-hidden={!menuOpen}
+              >
+                {user ? (
+                  <>
+                    <NavLink to="/dashboard" className="header-menu-link" onClick={() => setMenuOpen(false)}>
+                      Bills
+                    </NavLink>
+                    <button type="button" className="header-menu-link" onClick={() => void handleLogout()}>
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <NavLink to="/login" className="header-menu-link" onClick={() => setMenuOpen(false)}>
+                      Login
+                    </NavLink>
+                    <NavLink
+                      to="/register"
+                      className="header-menu-link header-menu-link-accent"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      Register
+                    </NavLink>
+                  </>
+                )}
+              </nav>
             </>
           ) : null}
         </div>
@@ -47,6 +166,7 @@ export function Layout({
     </div>
   );
 }
+
 
 export function Button({
   children,

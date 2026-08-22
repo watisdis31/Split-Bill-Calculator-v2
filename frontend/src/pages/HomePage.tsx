@@ -16,7 +16,7 @@ export function HomePage() {
 
   return (
     <Layout guest>
-      <h1 className="page-title">EasySplitBill</h1>
+      <h1 className="page-title">EzSplitBill</h1>
       <section className="card">
         <p>Enter a receipt once. Share a link. Everyone calculates their own share.</p>
         <div className="actions" style={{ marginTop: "1rem" }}>
