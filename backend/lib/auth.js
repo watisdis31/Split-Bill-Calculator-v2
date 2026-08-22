@@ -14,10 +14,12 @@ function getSecret() {
 }
 
 function cookieOptions() {
+  const isProduction = process.env.NODE_ENV === "production";
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: isProduction,
+    // Cross-origin credentialed requests (Vercel frontend → Render API) require SameSite=None.
+    sameSite: isProduction ? "none" : "lax",
     path: "/",
     maxAge: SESSION_DAYS * 24 * 60 * 60,
   };

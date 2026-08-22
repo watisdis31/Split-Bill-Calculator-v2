@@ -2,8 +2,15 @@ import pg from "pg";
 
 const { Pool } = pg;
 
+const isProduction = process.env.NODE_ENV === "production";
+const connectionString = process.env.DATABASE_URL || "";
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
+  ssl:
+    isProduction || connectionString.includes("supabase")
+      ? { rejectUnauthorized: false }
+      : undefined,
 });
 
 export function query(text, params) {
