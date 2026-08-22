@@ -94,6 +94,27 @@ export function parseBillPayload(body, { partial = false } = {}) {
     else result.title = title.trim();
   }
 
+  if (!partial || body.billRestaurantName !== undefined || body.restaurantName !== undefined) {
+    const restaurantName =
+      body.billRestaurantName !== undefined ? body.billRestaurantName : body.restaurantName;
+    if (restaurantName === undefined || restaurantName === null || restaurantName === "") {
+      result.restaurantName = null;
+    } else if (typeof restaurantName !== "string") {
+      errors.push("Restaurant name must be a string");
+    } else {
+      const trimmed = restaurantName.trim();
+      if (!trimmed) {
+        result.restaurantName = null;
+      } else if (trimmed.length > 255) {
+        errors.push("Restaurant name must be at most 255 characters");
+      } else {
+        result.restaurantName = trimmed;
+      }
+    }
+  } else if (!partial) {
+    result.restaurantName = null;
+  }
+
   if (!partial || body.currencyId !== undefined || body.BillCurrencyFKId !== undefined) {
     const currency = parseInteger(body.currencyId ?? body.BillCurrencyFKId, "Currency", {
       min: 1,
@@ -237,10 +258,15 @@ export function parseBillListQuery(searchParams) {
     required: false,
   });
 
+  const rawRestaurant = searchParams.get("restaurant");
+  const restaurant =
+    typeof rawRestaurant === "string" ? rawRestaurant.trim().slice(0, 255) : "";
+
   return {
     page,
     limit,
     search,
+    restaurant,
     month: monthParsed.error || !monthParsed.value ? null : monthParsed.value,
     year: yearParsed.error || !yearParsed.value ? null : yearParsed.value,
     sort: searchParams.get("sort") === "asc" ? "asc" : "desc",

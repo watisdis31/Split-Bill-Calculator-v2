@@ -44,6 +44,7 @@ export interface BillTotals {
 export interface Bill {
   id: number;
   title: string;
+  restaurantName: string | null;
   ownerId?: number;
   isOwner: boolean;
   currency: Currency;
@@ -58,6 +59,7 @@ export interface Bill {
 export interface BillListItem {
   id: number;
   title: string;
+  restaurantName: string | null;
   ownerId?: number;
   ownerUsername?: string | null;
   isOwner: boolean;

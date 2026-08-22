@@ -32,17 +32,19 @@ export function BillSection({
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [restaurant, setRestaurant] = useState("");
   const [month, setMonth] = useState("");
   const [year, setYear] = useState("");
   const [sort, setSort] = useState<"asc" | "desc">("desc");
   const [bills, setBills] = useState<BillListItem[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [years, setYears] = useState<number[]>([]);
+  const [restaurants, setRestaurants] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const requestId = useRef(0);
 
-  const hasFilters = Boolean(search || month || year || sort !== "desc");
+  const hasFilters = Boolean(search || restaurant || month || year || sort !== "desc");
   const noBills = !loading && bills.length === 0;
   const showEmptyAccount = noBills && !hasFilters;
   const showFilteredEmpty = noBills && hasFilters;
@@ -71,6 +73,7 @@ export function BillSection({
           limit: PAGE_SIZE,
           scope,
           search,
+          restaurant,
           month: month ? Number(month) : "",
           year: year ? Number(year) : "",
           sort,
@@ -86,6 +89,7 @@ export function BillSection({
         setBills(Array.isArray(res.data.bills) ? res.data.bills : []);
         setTotalPages(pages);
         setYears(res.data.years || []);
+        setRestaurants(Array.isArray(res.data.restaurants) ? res.data.restaurants : []);
       } catch (err) {
         if (cancelled || id !== requestId.current) return;
         setError(getErrorMessage(err, "Could not load bills."));
@@ -98,11 +102,12 @@ export function BillSection({
     return () => {
       cancelled = true;
     };
-  }, [page, search, month, year, sort, scope, reloadToken]);
+  }, [page, search, restaurant, month, year, sort, scope, reloadToken]);
 
   function resetFilters() {
     setSearchInput("");
     setSearch("");
+    setRestaurant("");
     setMonth("");
     setYear("");
     setSort("desc");
@@ -124,12 +129,18 @@ export function BillSection({
           <BillToolbar
             idPrefix={scope}
             search={searchInput}
+            restaurant={restaurant}
+            restaurants={restaurants}
             month={month}
             year={year}
             sort={sort}
             years={years}
             searchPlaceholder={searchPlaceholder}
             onSearchChange={setSearchInput}
+            onRestaurantChange={(value) => {
+              setRestaurant(value);
+              setPage(1);
+            }}
             onMonthChange={(value) => {
               setMonth(value);
               setPage(1);

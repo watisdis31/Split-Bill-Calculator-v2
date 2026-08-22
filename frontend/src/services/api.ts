@@ -68,6 +68,7 @@ export const api = {
     limit = 5,
     scope = "owned",
     search = "",
+    restaurant = "",
     month,
     year,
     sort = "desc",
@@ -76,6 +77,7 @@ export const api = {
     limit?: number;
     scope?: "owned" | "saved";
     search?: string;
+    restaurant?: string;
     month?: number | "";
     year?: number | "";
     sort?: "asc" | "desc";
@@ -88,6 +90,8 @@ export const api = {
     });
     const trimmed = search.trim();
     if (trimmed) params.set("search", trimmed);
+    const trimmedRestaurant = restaurant.trim();
+    if (trimmedRestaurant) params.set("restaurant", trimmedRestaurant);
     if (month) params.set("month", String(month));
     if (year) params.set("year", String(year));
     return request<{
@@ -99,6 +103,7 @@ export const api = {
       hasPreviousPage: boolean;
       hasNextPage: boolean;
       years: number[];
+      restaurants: string[];
     }>(`/api/bills?${params.toString()}`);
   },
   getBill(billId: number) {
@@ -106,6 +111,7 @@ export const api = {
   },
   createBill(payload: {
     title: string;
+    restaurantName?: string | null;
     currencyId: number;
     tax: number;
     service: number;
@@ -123,6 +129,7 @@ export const api = {
     billId: number,
     payload: {
       title?: string;
+      restaurantName?: string | null;
       currencyId?: number;
       tax?: number;
       service?: number;

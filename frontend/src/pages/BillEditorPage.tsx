@@ -30,6 +30,7 @@ export function BillEditorPage() {
   const navigate = useNavigate();
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [title, setTitle] = useState("");
+  const [restaurantName, setRestaurantName] = useState("");
   const [currencyId, setCurrencyId] = useState<number | null>(null);
   const [items, setItems] = useState<DraftItem[]>([]);
   const [charges, setCharges] = useState<BillCharges>(emptyCharges);
@@ -40,6 +41,7 @@ export function BillEditorPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [titleError, setTitleError] = useState("");
+  const [restaurantError, setRestaurantError] = useState("");
   const [loadFailed, setLoadFailed] = useState(false);
   const { notify } = useToast();
 
@@ -68,6 +70,7 @@ export function BillEditorPage() {
             return;
           }
           setTitle(bill.title);
+          setRestaurantName(bill.restaurantName || "");
           setCurrencyId(bill.currency.id);
           setCharges(bill.charges);
           setShareToken(bill.shareToken || null);
@@ -114,15 +117,23 @@ export function BillEditorPage() {
   async function save() {
     if (!currency) return;
     const trimmed = title.trim();
+    const trimmedRestaurant = restaurantName.trim();
+    let nextTitleError = "";
+    let nextRestaurantError = "";
     if (!trimmed) {
-      setTitleError("Bill title is required.");
-      return;
+      nextTitleError = "Bill title is required.";
     }
+    if (trimmedRestaurant.length > 255) {
+      nextRestaurantError = "Restaurant name must be at most 255 characters.";
+    }
+    setTitleError(nextTitleError);
+    setRestaurantError(nextRestaurantError);
+    if (nextTitleError || nextRestaurantError) return;
     setSaving(true);
-    setTitleError("");
     setError("");
     const payload = {
       title: trimmed,
+      restaurantName: trimmedRestaurant || null,
       currencyId: currency.id,
       tax: charges.tax,
       service: charges.service,
@@ -142,6 +153,7 @@ export function BillEditorPage() {
         const res = await api.updateBill(savedId, payload);
         setSavedId(res.data.bill.id);
         setShareToken(res.data.bill.shareToken || shareToken);
+        setRestaurantName(res.data.bill.restaurantName || "");
         setItems(
           res.data.bill.items.map((item) => ({
             key: String(item.id),
@@ -214,6 +226,22 @@ export function BillEditorPage() {
               placeholder="Dinner at Sushi Place"
             />
             <FieldError id="title-error" message={titleError} />
+          </div>
+          <div className="field">
+            <label htmlFor="restaurant-name">Restaurant name (optional)</label>
+            <input
+              id="restaurant-name"
+              className={`input${restaurantError ? " input-invalid" : ""}`}
+              value={restaurantName}
+              aria-invalid={Boolean(restaurantError)}
+              aria-describedby={restaurantError ? "restaurant-name-error" : undefined}
+              onChange={(e) => {
+                setRestaurantName(e.target.value);
+                setRestaurantError("");
+              }}
+              placeholder="Enter restaurant name"
+            />
+            <FieldError id="restaurant-name-error" message={restaurantError} />
           </div>
           <div className="field">
             <label htmlFor="currency">Currency</label>

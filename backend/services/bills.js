@@ -37,6 +37,7 @@ export function mapBill(row, items = [], { isOwner = false, includeShareToken = 
   const bill = {
     id: toInt(row.BillId),
     title: row.billTitle,
+    restaurantName: row.billRestaurantName || null,
     ownerId: toInt(row.BillUserId),
     isOwner,
     currency: mapCurrency(row),
@@ -74,7 +75,7 @@ export async function listCurrencies(db = { query }) {
 export async function getBillRowById(billId, db = { query }) {
   const result = await db.query(
     `SELECT
-       b."BillId", b."BillUserId", b."billTitle", b."billTax", b."billService",
+       b."BillId", b."BillUserId", b."billTitle", b."billRestaurantName", b."billTax", b."billService",
        b."billDiscount", b."billDiscountType", b."billDiscountTiming",
        b."billShareToken", b."BillCurrencyFKId", b."BillCreatedAt", b."BillUpdatedAt",
        c."CurrencyId", c."currencyCode", c."currencyName", c."currencySymbol", c."decimalPlaces"
@@ -89,7 +90,7 @@ export async function getBillRowById(billId, db = { query }) {
 export async function getBillRowByShareToken(shareToken, db = { query }) {
   const result = await db.query(
     `SELECT
-       b."BillId", b."BillUserId", b."billTitle", b."billTax", b."billService",
+       b."BillId", b."BillUserId", b."billTitle", b."billRestaurantName", b."billTax", b."billService",
        b."billDiscount", b."billDiscountType", b."billDiscountTiming",
        b."billShareToken", b."BillCurrencyFKId", b."BillCreatedAt", b."BillUpdatedAt",
        c."CurrencyId", c."currencyCode", c."currencyName", c."currencySymbol", c."decimalPlaces"
@@ -134,7 +135,16 @@ export async function userCanViewBill(billId, userId, db = { query }) {
 
 export async function listAccessibleBills(
   userId,
-  { page, limit, scope = "owned", search = "", month = null, year = null, sort = "desc" },
+  {
+    page,
+    limit,
+    scope = "owned",
+    search = "",
+    restaurant = "",
+    month = null,
+    year = null,
+    sort = "desc",
+  },
   db = { query }
 ) {
   const offset = (page - 1) * limit;
@@ -160,6 +170,10 @@ export async function listAccessibleBills(
     params.push(`%${escapeIlike(search)}%`);
     conditions.push(`b."billTitle" ILIKE $${params.length} ESCAPE '\\'`);
   }
+  if (restaurant) {
+    params.push(restaurant);
+    conditions.push(`b."billRestaurantName" = $${params.length}`);
+  }
   if (month) {
     params.push(month);
     conditions.push(`EXTRACT(MONTH FROM b."BillCreatedAt") = $${params.length}`);
@@ -171,7 +185,7 @@ export async function listAccessibleBills(
 
   const where = conditions.join(" AND ");
 
-  const [countResult, yearsResult, listResult] = await Promise.all([
+  const [countResult, yearsResult, restaurantsResult, listResult] = await Promise.all([
     db.query(
       `SELECT COUNT(*) AS total
        FROM "Bills" b
@@ -186,8 +200,17 @@ export async function listAccessibleBills(
       [userId]
     ),
     db.query(
+      `SELECT DISTINCT b."billRestaurantName" AS "restaurantName"
+       FROM "Bills" b
+       WHERE ${accessWhere}
+         AND b."billRestaurantName" IS NOT NULL
+         AND LENGTH(TRIM(b."billRestaurantName")) > 0
+       ORDER BY b."billRestaurantName" ASC`,
+      [userId]
+    ),
+    db.query(
       `SELECT
-         b."BillId", b."BillUserId", b."billTitle", b."billTax", b."billService",
+         b."BillId", b."BillUserId", b."billTitle", b."billRestaurantName", b."billTax", b."billService",
          b."billDiscount", b."billDiscountType", b."billDiscountTiming",
          b."billShareToken", b."BillCurrencyFKId", b."BillCreatedAt", b."BillUpdatedAt",
          c."CurrencyId", c."currencyCode", c."currencyName", c."currencySymbol", c."decimalPlaces",
@@ -219,6 +242,7 @@ export async function listAccessibleBills(
     return {
       id: toInt(row.BillId),
       title: row.billTitle,
+      restaurantName: row.billRestaurantName || null,
       ownerId: toInt(row.BillUserId),
       ownerUsername: row.ownerUsername || null,
       isOwner: row.isOwner === true,
@@ -239,6 +263,9 @@ export async function listAccessibleBills(
     limit,
     total: toInt(countResult.rows[0].total),
     years: yearsResult.rows.map((row) => toInt(row.year)).filter((value) => value > 0),
+    restaurants: restaurantsResult.rows
+      .map((row) => row.restaurantName)
+      .filter((value) => typeof value === "string" && value.trim()),
   };
 }
 
@@ -249,14 +276,15 @@ function escapeIlike(value) {
 export async function insertBill(data, userId, db = { query }) {
   const result = await db.query(
     `INSERT INTO "Bills" (
-       "BillUserId", "billTitle", "billTax", "billService", "billDiscount",
+       "BillUserId", "billTitle", "billRestaurantName", "billTax", "billService", "billDiscount",
        "billDiscountType", "billDiscountTiming", "BillCurrencyFKId"
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING "BillId"`,
     [
       userId,
       data.title,
+      data.restaurantName,
       data.tax,
       data.service,
       data.discount,
@@ -275,6 +303,7 @@ export async function updateBill(billId, data, db = { query }) {
 
   const map = {
     title: '"billTitle"',
+    restaurantName: '"billRestaurantName"',
     tax: '"billTax"',
     service: '"billService"',
     discount: '"billDiscount"',

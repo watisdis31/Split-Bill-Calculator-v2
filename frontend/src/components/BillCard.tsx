@@ -11,6 +11,9 @@ export function BillCard({ bill, children }: { bill: BillListItem; children: Rea
         <div className="bill-card-heading">
           <h3 className="bill-card-title">{bill.title}</h3>
           {showOwner ? <span className="bill-card-owner">by @{bill.ownerUsername}</span> : null}
+          {bill.restaurantName ? (
+            <div className="bill-card-restaurant">{bill.restaurantName}</div>
+          ) : null}
         </div>
         <div className="bill-card-meta">
           <strong className="bill-card-total">{formatMoney(bill.totals.total, bill.currency)}</strong>
