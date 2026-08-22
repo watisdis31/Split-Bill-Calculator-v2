@@ -106,8 +106,14 @@ Deploy as **two Vercel projects** from this monorepo (both free Hobby tier).
 ### Supabase
 
 1. Create a project and run the SQL files in `database/LogDB/` via the SQL Editor.
-2. Copy the **Transaction pooler** connection string (port `6543`) for serverless.
+2. Copy the **Transaction pooler** connection string (port `6543`, host contains `pooler.supabase.com`) for serverless.
 3. Append `?sslmode=require` if it is not already included.
+
+**Troubleshooting `ENOTFOUND db....supabase.co`**
+
+- **Supabase project paused:** free projects pause after inactivity. Open the Supabase dashboard and click **Restore project**.
+- **Wrong host:** on Vercel serverless, prefer the **pooler** URL, not the direct `db.xxx.supabase.co` host if DNS fails.
+- **Bad env paste:** in Vercel → Settings → Environment Variables, re-paste `DATABASE_URL` with no quotes or trailing spaces. Redeploy after saving.
 
 ### Vercel backend (`backend/`)
 

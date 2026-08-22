@@ -13,6 +13,13 @@ export function jsonError(message, status = 400, data = null) {
 export function handleError(error) {
   console.error(error);
 
+  if (error && (error.code === "ENOTFOUND" || error.syscall === "getaddrinfo")) {
+    return jsonError(
+      "Database connection failed. Check DATABASE_URL in Vercel and ensure your Supabase project is active.",
+      503
+    );
+  }
+
   if (error && error.code === "23505") {
     return jsonError("Resource already exists", 409);
   }

@@ -4,7 +4,7 @@ const { Pool } = pg;
 
 const isProduction = process.env.NODE_ENV === "production";
 const isServerless = Boolean(process.env.VERCEL);
-const connectionString = process.env.DATABASE_URL || "";
+const connectionString = (process.env.DATABASE_URL || "").trim().replace(/^["']|["']$/g, "");
 
 const pool = new Pool({
   connectionString,
