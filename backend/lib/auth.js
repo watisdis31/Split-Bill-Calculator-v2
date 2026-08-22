@@ -18,8 +18,8 @@ function cookieOptions() {
   return {
     httpOnly: true,
     secure: isProduction,
-    // Cross-origin credentialed requests (Vercel frontend → Vercel API) require SameSite=None.
-    sameSite: isProduction ? "none" : "lax",
+    // First-party on the frontend origin via the /api rewrite. Lax survives Safari ITP.
+    sameSite: "lax",
     path: "/",
     maxAge: SESSION_DAYS * 24 * 60 * 60,
   };

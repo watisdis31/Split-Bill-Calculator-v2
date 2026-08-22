@@ -5,7 +5,7 @@ const ALLOWED_HEADERS = "Content-Type";
 
 function applyCors(request, response) {
   const origin = request.headers.get("origin");
-  const allowed = process.env.FRONTEND_URL || "http://localhost:5173";
+  const allowed = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
 
   if (origin && origin === allowed) {
     response.headers.set("Access-Control-Allow-Origin", origin);

@@ -188,8 +188,7 @@ textarea {
 
 .header-menu-link:hover,
 .header-menu-link.active,
-.header-menu-link:focus-visible,
-.header-menu-link-accent {
+.header-menu-link:focus-visible {
   background: var(--btn-face);
   border-color: var(--line);
   box-shadow: 2px 2px 0 var(--line);

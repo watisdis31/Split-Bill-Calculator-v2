@@ -32,6 +32,10 @@ function CloseIcon() {
   );
 }
 
+function menuLinkClass({ isActive }: { isActive: boolean }) {
+  return `header-menu-link${isActive ? " active" : ""}`;
+}
+
 export function Layout({
   children,
   guest = false,
@@ -107,10 +111,10 @@ export function Layout({
               </>
             ) : guest ? (
               <>
-                <NavLink to="/login" className="btn btn-secondary">
+                <NavLink to="/login" end className="btn btn-secondary">
                   Login
                 </NavLink>
-                <NavLink to="/register" className="btn">
+                <NavLink to="/register" end className="btn">
                   Register
                 </NavLink>
               </>
@@ -136,7 +140,7 @@ export function Layout({
               >
                 {user ? (
                   <>
-                    <NavLink to="/dashboard" className="header-menu-link" onClick={() => setMenuOpen(false)}>
+                    <NavLink to="/dashboard" end className={menuLinkClass} onClick={() => setMenuOpen(false)}>
                       Bills
                     </NavLink>
                     <button type="button" className="header-menu-link" onClick={() => void handleLogout()}>
@@ -145,14 +149,10 @@ export function Layout({
                   </>
                 ) : (
                   <>
-                    <NavLink to="/login" className="header-menu-link" onClick={() => setMenuOpen(false)}>
+                    <NavLink to="/login" end className={menuLinkClass} onClick={() => setMenuOpen(false)}>
                       Login
                     </NavLink>
-                    <NavLink
-                      to="/register"
-                      className="header-menu-link header-menu-link-accent"
-                      onClick={() => setMenuOpen(false)}
-                    >
+                    <NavLink to="/register" end className={menuLinkClass} onClick={() => setMenuOpen(false)}>
                       Register
                     </NavLink>
                   </>

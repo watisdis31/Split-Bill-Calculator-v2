@@ -6,7 +6,8 @@ import { BillToolbar } from "./BillToolbar";
 import { AlertMessage } from "./Feedback";
 import { Loading } from "./Loading";
 import { api } from "../services/api";
-import { getErrorMessage } from "../hooks/useAuth";
+import { getErrorMessage, useAuth } from "../hooks/useAuth";
+import { ApiError } from "../types";
 import type { BillListItem } from "../types";
 
 const PAGE_SIZE = 5;
@@ -47,6 +48,7 @@ export function BillSection({
   const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState("");
   const requestId = useRef(0);
+  const { user, loading: authLoading } = useAuth();
 
   const hasFilters = Boolean(search || restaurant || month || year || sort !== "desc");
   const noBills = hasLoaded && !loading && !error && bills.length === 0;
@@ -65,6 +67,8 @@ export function BillSection({
   }, [searchInput]);
 
   useEffect(() => {
+    if (authLoading || !user) return;
+
     const id = ++requestId.current;
     let cancelled = false;
 
@@ -96,6 +100,7 @@ export function BillSection({
         setRestaurants(Array.isArray(res.data.restaurants) ? res.data.restaurants : []);
       } catch (err) {
         if (cancelled || id !== requestId.current) return;
+        if (err instanceof ApiError && err.status === 401) return;
         setError(getErrorMessage(err, "Could not load bills."));
       } finally {
         if (!cancelled && id === requestId.current) {
@@ -109,7 +114,7 @@ export function BillSection({
     return () => {
       cancelled = true;
     };
-  }, [page, search, restaurant, month, year, sort, scope, reloadToken]);
+  }, [page, search, restaurant, month, year, sort, scope, reloadToken, authLoading, user]);
 
   function resetFilters() {
     setSearchInput("");
