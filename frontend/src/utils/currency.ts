@@ -23,6 +23,11 @@ export function minorToInput(minorUnits: number, decimalPlaces: number): string 
   return `${whole}.${frac}`;
 }
 
+export function minorToEditableInput(minorUnits: number, decimalPlaces: number): string {
+  if (!minorUnits) return "";
+  return minorToInput(minorUnits, decimalPlaces);
+}
+
 export function parseMoneyInput(
   raw: string,
   decimalPlaces: number,

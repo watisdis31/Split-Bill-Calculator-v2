@@ -4,6 +4,12 @@
  *
  * All money values are integer minor units.
  * PERCENTAGE discounts are integer basis points (10% = 1000).
+ *
+ * Discount timing:
+ * - BEFORE_CHARGES: discount is based on item subtotal
+ * - AFTER_CHARGES: discount is based on subtotal + tax + service
+ *
+ * Tax and service are fixed amounts, not recalculated from a discounted subtotal.
  */
 
 export function itemTotal(item) {
@@ -14,16 +20,25 @@ export function billSubtotal(items) {
   return (items || []).reduce((sum, item) => sum + itemTotal(item), 0);
 }
 
+export function getDiscountBase(subtotal, charges) {
+  const items = Number(subtotal) || 0;
+  if (charges.discountTiming === "AFTER_CHARGES") {
+    return items + (Number(charges.tax) || 0) + (Number(charges.service) || 0);
+  }
+  return items;
+}
+
 export function getDiscountAmount(subtotal, charges) {
   const value = Number(charges.discount) || 0;
-  if (value <= 0 || subtotal <= 0) return 0;
+  const base = getDiscountBase(subtotal, charges);
+  if (value <= 0 || base <= 0) return 0;
 
   if (charges.discountType === "PERCENTAGE") {
-    const amount = Math.round((subtotal * value) / 10000);
-    return Math.min(Math.max(amount, 0), subtotal);
+    const amount = Math.round((base * value) / 10000);
+    return Math.min(Math.max(amount, 0), base);
   }
 
-  return Math.min(value, subtotal);
+  return Math.min(value, base);
 }
 
 export function calculateBillTotals(items, charges) {
@@ -81,19 +96,8 @@ export function calculatePersonalShare(items, charges, selections) {
   }
 
   const personalDiscount = roundShare(discountAmount, yours, billTotalItems);
-
-  let personalService;
-  let personalTax;
-
-  if (charges.discountTiming === "BEFORE_CHARGES") {
-    const base = Math.max(billTotalItems - discountAmount, 1);
-    personalService = roundShare(service, yours, base);
-    personalTax = roundShare(tax, yours, base);
-  } else {
-    personalService = roundShare(service, yours, billTotalItems);
-    personalTax = roundShare(tax, yours, billTotalItems);
-  }
-
+  const personalService = roundShare(service, yours, billTotalItems);
+  const personalTax = roundShare(tax, yours, billTotalItems);
   const finalAmount = yours - personalDiscount + personalService + personalTax;
 
   return {

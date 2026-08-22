@@ -168,7 +168,9 @@ export async function listAccessibleBills(
 
   if (search) {
     params.push(`%${escapeIlike(search)}%`);
-    conditions.push(`b."billTitle" ILIKE $${params.length} ESCAPE '\\'`);
+    conditions.push(
+      `(b."billTitle" ILIKE $${params.length} ESCAPE '\\' OR b."billRestaurantName" ILIKE $${params.length} ESCAPE '\\')`
+    );
   }
   if (restaurant) {
     params.push(restaurant);

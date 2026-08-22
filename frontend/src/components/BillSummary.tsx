@@ -3,6 +3,7 @@ import {
   calculateBillTotals,
   calculatePercentage,
   formatSummaryChargePercentage,
+  getDiscountPercentageForDisplay,
 } from "../utils/calculations";
 import { formatMoney } from "../utils/currency";
 
@@ -20,6 +21,9 @@ export function BillSummary({
     calculatePercentage(totals.service, totals.subtotal)
   );
   const taxLabel = formatSummaryChargePercentage(calculatePercentage(totals.tax, totals.subtotal));
+  const discountLabel = formatSummaryChargePercentage(
+    getDiscountPercentageForDisplay(charges, totals.subtotal, totals.discountAmount)
+  );
 
   return (
     <div>
@@ -28,7 +32,7 @@ export function BillSummary({
         <span>{formatMoney(totals.subtotal, currency)}</span>
       </div>
       <div className="total-line">
-        <span>Discount</span>
+        <span>{discountLabel ? `Discount (${discountLabel})` : "Discount"}</span>
         <span>-{formatMoney(totals.discountAmount, currency)}</span>
       </div>
       <div className="total-line">

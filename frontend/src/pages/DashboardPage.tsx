@@ -53,7 +53,7 @@ export function DashboardPage() {
       <BillSection
         title="My bills"
         scope="owned"
-        searchPlaceholder="Search by bill title..."
+        searchPlaceholder="Search by title or restaurant..."
         emptyTitle="You don't have any bills yet"
         emptyCopy="Create your first bill to start splitting expenses."
         emptyAction={
@@ -83,7 +83,7 @@ export function DashboardPage() {
       <BillSection
         title="Saved / shared bills"
         scope="saved"
-        searchPlaceholder="Search by bill title..."
+        searchPlaceholder="Search by title or restaurant..."
         emptyTitle="No saved bills yet"
         emptyCopy="Open a shared link and click Save bill to keep it here."
         reloadToken={savedTick}

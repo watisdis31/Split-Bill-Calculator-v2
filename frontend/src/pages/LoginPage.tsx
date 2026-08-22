@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Layout, Button } from "../components/Layout";
 import { AlertMessage, FieldError } from "../components/Feedback";
+import { PasswordInput } from "../components/PasswordInput";
 import { getErrorMessage, useAuth } from "../hooks/useAuth";
 import { safeRedirectPath } from "../utils/redirect";
 
@@ -64,23 +65,17 @@ export function LoginPage() {
             />
             <FieldError id="username-error" message={usernameError} />
           </div>
-          <div className="field">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              className={`input${passwordError ? " input-invalid" : ""}`}
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              aria-invalid={Boolean(passwordError)}
-              aria-describedby={passwordError ? "password-error" : undefined}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setPasswordError("");
-              }}
-            />
-            <FieldError id="password-error" message={passwordError} />
-          </div>
+          <PasswordInput
+            id="password"
+            label="Password"
+            value={password}
+            autoComplete="current-password"
+            error={passwordError}
+            onChange={(next) => {
+              setPassword(next);
+              setPasswordError("");
+            }}
+          />
           <AlertMessage type="error" message={error} />
           <Button type="submit" className="btn-block" loading={busy} loadingLabel="Logging in...">
             Login
