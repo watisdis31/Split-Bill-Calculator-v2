@@ -68,13 +68,16 @@ export function ShareBillPanel({ billId, shareToken }: { billId: number; shareTo
     <div className="stack">
       {shareUrl ? (
         <>
-          <p className="muted">Share this link with your friends:</p>
-          <input className="input share-url" readOnly value={shareUrl} />
+          <div className="field">
+            <label htmlFor="share-url">Share this link with your friends</label>
+            <input id="share-url" className="input share-url" readOnly value={shareUrl} />
+          </div>
           <Button className="btn-block" onClick={() => void copy()}>
             Copy link
           </Button>
-          <p className="muted">Scan to open</p>
-          <div className="share-qr-wrap">
+          <div className="field">
+            <span className="field-label">Scan to open</span>
+            <div className="share-qr-wrap">
             <QRCodeSVG
               value={shareUrl}
               size={180}
@@ -85,6 +88,7 @@ export function ShareBillPanel({ billId, shareToken }: { billId: number; shareTo
               title="Bill share QR code"
               className="share-qr"
             />
+            </div>
           </div>
         </>
       ) : (

@@ -16,6 +16,27 @@ export function billSubtotal(items: Array<{ price: number; quantity: number }>):
   return (items || []).reduce((sum, item) => sum + itemTotal(item), 0);
 }
 
+export function calculatePercentage(amount: number, subtotal: number): number | null {
+  const base = Number(subtotal) || 0;
+  if (base <= 0) return null;
+  return ((Number(amount) || 0) / base) * 100;
+}
+
+function roundPercentageDisplay(percentage: number): string {
+  const rounded = Math.round(percentage * 100) / 100;
+  return rounded.toFixed(2).replace(/\.?0+$/, "");
+}
+
+export function formatChargePercentageIndicator(percentage: number | null): string {
+  if (percentage === null) return "—";
+  return `≈ ${roundPercentageDisplay(percentage)}%`;
+}
+
+export function formatSummaryChargePercentage(percentage: number | null): string | null {
+  if (percentage === null) return null;
+  return `${roundPercentageDisplay(percentage)}%`;
+}
+
 export function getDiscountAmount(subtotal: number, charges: BillCharges): number {
   const value = Number(charges.discount) || 0;
   if (value <= 0 || subtotal <= 0) return 0;

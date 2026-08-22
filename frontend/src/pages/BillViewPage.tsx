@@ -5,7 +5,8 @@ import { ItemList } from "../components/ItemList";
 import { BillSummary } from "../components/BillSummary";
 import { PersonalCalculator } from "../components/PersonalCalculator";
 import { ShareBillPanel } from "../components/ShareBillPanel";
-import { AlertMessage, StatusMessage } from "../components/Feedback";
+import { AlertMessage } from "../components/Feedback";
+import { Loading } from "../components/Loading";
 import { api } from "../services/api";
 import { getErrorMessage } from "../hooks/useAuth";
 import type { Bill } from "../types";
@@ -75,17 +76,18 @@ export function BillViewPage() {
 
   if (loading) {
     return (
-      <Layout narrow>
-        <StatusMessage>Loading bill...</StatusMessage>
+      <Layout>
+        <Loading message="Loading bill..." />
       </Layout>
     );
   }
 
   if (!bill) {
+    const notFound = error === "Bill not found.";
     return (
-      <Layout narrow>
+      <Layout>
         <section className="card stack">
-          <h1 className="page-title">Bill not found</h1>
+          <h1 className="page-title">{notFound ? "Bill not found" : "Could not load bill"}</h1>
           <AlertMessage type="error" message={error || "This bill may have been deleted."} />
           <Link className="btn" to="/dashboard">
             Back to dashboard
@@ -96,10 +98,9 @@ export function BillViewPage() {
   }
 
   return (
-    <Layout narrow>
+    <Layout>
       <h1 className="page-title">{bill.title}</h1>
       {bill.restaurantName ? <p className="bill-restaurant">{bill.restaurantName}</p> : null}
-      <p className="muted">{bill.currency.code}</p>
       <AlertMessage type="error" message={error} />
 
       {bill.isOwner ? (

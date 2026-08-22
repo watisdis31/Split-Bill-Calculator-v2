@@ -93,46 +93,49 @@ export function ItemForm({
         />
         <FieldError id="item-name-error" message={nameError} />
       </div>
-      <div className="field">
-        <label htmlFor="item-price">Price</label>
-        <input
-          id="item-price"
-          className={`input${priceError ? " input-invalid" : ""}`}
-          inputMode="decimal"
-          value={price}
-          aria-invalid={Boolean(priceError)}
-          aria-describedby={priceError ? "item-price-error" : undefined}
-          onChange={(e) => {
-            setPrice(e.target.value);
-            setPriceError("");
-          }}
-          placeholder={currency.decimalPlaces === 0 ? "50000" : "12.50"}
-        />
-        <FieldError id="item-price-error" message={priceError} />
-      </div>
-      <div className="field">
-        <label htmlFor="item-qty">Quantity</label>
-        <input
-          id="item-qty"
-          className={`input${quantityError ? " input-invalid" : ""}`}
-          type="number"
-          min={1}
-          step={1}
-          value={quantity}
-          aria-invalid={Boolean(quantityError)}
-          aria-describedby={quantityError ? "item-qty-error" : undefined}
-          onChange={(e) => {
-            setQuantity(e.target.value);
-            setQuantityError("");
-          }}
-        />
-        <FieldError id="item-qty-error" message={quantityError} />
+      <div className="fields-split">
+        <div className="field">
+          <label htmlFor="item-price">Price</label>
+          <input
+            id="item-price"
+            className={`input${priceError ? " input-invalid" : ""}`}
+            inputMode="decimal"
+            value={price}
+            aria-invalid={Boolean(priceError)}
+            aria-describedby={priceError ? "item-price-error" : undefined}
+            onChange={(e) => {
+              setPrice(e.target.value);
+              setPriceError("");
+            }}
+            placeholder={currency.decimalPlaces === 0 ? "50000" : "12.50"}
+          />
+          <FieldError id="item-price-error" message={priceError} />
+        </div>
+        <div className="field">
+          <label htmlFor="item-qty">Quantity</label>
+          <input
+            id="item-qty"
+            className={`input${quantityError ? " input-invalid" : ""}`}
+            type="number"
+            min={1}
+            step={1}
+            value={quantity}
+            aria-invalid={Boolean(quantityError)}
+            aria-describedby={quantityError ? "item-qty-error" : undefined}
+            onChange={(e) => {
+              setQuantity(e.target.value);
+              setQuantityError("");
+            }}
+          />
+          <FieldError id="item-qty-error" message={quantityError} />
+        </div>
       </div>
       <div className="field">
         <label htmlFor="item-notes">Notes (optional)</label>
-        <input
+        <textarea
           id="item-notes"
           className="input"
+          rows={2}
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Shared, extra spicy..."

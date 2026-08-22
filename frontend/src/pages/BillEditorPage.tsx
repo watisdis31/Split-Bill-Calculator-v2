@@ -7,9 +7,11 @@ import type { DraftItem } from "../components/ItemList";
 import { ChargesForm } from "../components/ChargesForm";
 import { BillSummary } from "../components/BillSummary";
 import { ShareBillPanel } from "../components/ShareBillPanel";
-import { AlertMessage, FieldError, StatusMessage, useToast } from "../components/Feedback";
+import { AlertMessage, FieldError, useToast } from "../components/Feedback";
+import { Loading } from "../components/Loading";
 import { api } from "../services/api";
 import { getErrorMessage } from "../hooks/useAuth";
+import { billSubtotal } from "../utils/calculations";
 import type { BillCharges, Currency } from "../types";
 
 const emptyCharges: BillCharges = {
@@ -37,9 +39,10 @@ export function BillEditorPage() {
   const [editing, setEditing] = useState<DraftItem | null>(null);
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [savedId, setSavedId] = useState<number | null>(billId ? Number(billId) : null);
-  const [loading, setLoading] = useState(!isNew);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [currencyError, setCurrencyError] = useState("");
   const [titleError, setTitleError] = useState("");
   const [restaurantError, setRestaurantError] = useState("");
   const [loadFailed, setLoadFailed] = useState(false);
@@ -50,6 +53,8 @@ export function BillEditorPage() {
     [currencies, currencyId]
   );
 
+  const itemsSubtotal = useMemo(() => billSubtotal(items), [items]);
+
   useEffect(() => {
     let cancelled = false;
     async function boot() {
@@ -57,6 +62,7 @@ export function BillEditorPage() {
         const currencyRes = await api.currencies();
         if (cancelled) return;
         setCurrencies(currencyRes.data.currencies);
+        setCurrencyError("");
         const idr = currencyRes.data.currencies.find((c) => c.code === "IDR");
         setCurrencyId(idr?.id ?? currencyRes.data.currencies[0]?.id ?? null);
 
@@ -88,8 +94,12 @@ export function BillEditorPage() {
         }
       } catch (err) {
         if (!cancelled) {
-          setError(getErrorMessage(err, "Could not load bill."));
-          if (billId) setLoadFailed(true);
+          if (billId) {
+            setError(getErrorMessage(err, "Could not load bill."));
+            setLoadFailed(true);
+          } else {
+            setCurrencyError(getErrorMessage(err, "Failed to load currencies."));
+          }
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -181,31 +191,42 @@ export function BillEditorPage() {
 
   if (loading) {
     return (
-      <Layout narrow>
-        <StatusMessage>Loading bill...</StatusMessage>
+      <Layout>
+        <h1 className="page-title">{isNew && !savedId ? "New bill" : "Edit bill"}</h1>
+        <Loading message={isNew && !savedId ? "Loading currencies..." : "Loading bill..."} />
       </Layout>
     );
   }
 
   if (loadFailed) {
     return (
-      <Layout narrow>
+      <Layout>
         <h1 className="page-title">Edit bill</h1>
         <AlertMessage type="error" message={error} />
       </Layout>
     );
   }
 
+  if (currencyError) {
+    return (
+      <Layout>
+        <h1 className="page-title">New bill</h1>
+        <AlertMessage type="error" message={currencyError} />
+      </Layout>
+    );
+  }
+
   if (!currency) {
     return (
-      <Layout narrow>
+      <Layout>
+        <h1 className="page-title">{isNew && !savedId ? "New bill" : "Edit bill"}</h1>
         <AlertMessage type="error" message="No currencies are available." />
       </Layout>
     );
   }
 
   return (
-    <Layout narrow>
+    <Layout>
       <h1 className="page-title">{isNew && !savedId ? "New bill" : "Edit bill"}</h1>
 
       <section className="card">
@@ -223,40 +244,42 @@ export function BillEditorPage() {
                 setTitle(e.target.value);
                 setTitleError("");
               }}
-              placeholder="Dinner at Sushi Place"
+              placeholder="Dinner With Friends"
             />
             <FieldError id="title-error" message={titleError} />
           </div>
-          <div className="field">
-            <label htmlFor="restaurant-name">Restaurant name (optional)</label>
-            <input
-              id="restaurant-name"
-              className={`input${restaurantError ? " input-invalid" : ""}`}
-              value={restaurantName}
-              aria-invalid={Boolean(restaurantError)}
-              aria-describedby={restaurantError ? "restaurant-name-error" : undefined}
-              onChange={(e) => {
-                setRestaurantName(e.target.value);
-                setRestaurantError("");
-              }}
-              placeholder="Enter restaurant name"
-            />
-            <FieldError id="restaurant-name-error" message={restaurantError} />
-          </div>
-          <div className="field">
-            <label htmlFor="currency">Currency</label>
-            <select
-              id="currency"
-              className="select"
-              value={currency.id}
-              onChange={(e) => setCurrencyId(Number(e.target.value))}
-            >
-              {currencies.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.code} ({c.symbol})
-                </option>
-              ))}
-            </select>
+          <div className="fields-split fields-split-wide">
+            <div className="field">
+              <label htmlFor="restaurant-name">Restaurant name (optional)</label>
+              <input
+                id="restaurant-name"
+                className={`input${restaurantError ? " input-invalid" : ""}`}
+                value={restaurantName}
+                aria-invalid={Boolean(restaurantError)}
+                aria-describedby={restaurantError ? "restaurant-name-error" : undefined}
+                onChange={(e) => {
+                  setRestaurantName(e.target.value);
+                  setRestaurantError("");
+                }}
+                placeholder="Enter restaurant name"
+              />
+              <FieldError id="restaurant-name-error" message={restaurantError} />
+            </div>
+            <div className="field">
+              <label htmlFor="currency">Currency</label>
+              <select
+                id="currency"
+                className="select"
+                value={currency.id}
+                onChange={(e) => setCurrencyId(Number(e.target.value))}
+              >
+                {currencies.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.code} ({c.symbol})
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </section>
@@ -294,7 +317,13 @@ export function BillEditorPage() {
 
       <section className="card">
         <h2>Discount / Service / Tax</h2>
-        <ChargesForm key={currency.id} currency={currency} charges={charges} onChange={setCharges} />
+        <ChargesForm
+          key={currency.id}
+          currency={currency}
+          charges={charges}
+          subtotal={itemsSubtotal}
+          onChange={setCharges}
+        />
       </section>
 
       <section className="card">
@@ -315,11 +344,9 @@ export function BillEditorPage() {
 
       {savedId ? (
         <>
-          <div className="actions" style={{ margin: "1rem 0" }}>
-            <Link className="btn btn-secondary" to={`/bills/${savedId}`}>
-              Open bill
-            </Link>
-          </div>
+          <Link className="btn btn-secondary btn-block" to={`/bills/${savedId}`} style={{ margin: "1rem 0" }}>
+            Open bill
+          </Link>
           <section className="card">
             <h2>Share bill</h2>
             <ShareBillPanel billId={savedId} shareToken={shareToken} />

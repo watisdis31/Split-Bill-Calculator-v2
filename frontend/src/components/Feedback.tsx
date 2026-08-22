@@ -38,10 +38,6 @@ export function FieldError({ id, message }: { id?: string; message?: string }) {
   );
 }
 
-export function StatusMessage({ children }: { children: ReactNode }) {
-  return <p className="status">{children}</p>;
-}
-
 interface ToastItem {
   id: number;
   type: FeedbackType;

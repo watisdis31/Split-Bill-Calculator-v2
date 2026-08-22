@@ -4,7 +4,8 @@ import { Layout, Button } from "../components/Layout";
 import { ItemList } from "../components/ItemList";
 import { BillSummary } from "../components/BillSummary";
 import { PersonalCalculator } from "../components/PersonalCalculator";
-import { AlertMessage, StatusMessage, useToast } from "../components/Feedback";
+import { AlertMessage, useToast } from "../components/Feedback";
+import { Loading } from "../components/Loading";
 import { api } from "../services/api";
 import { getErrorMessage, useAuth } from "../hooks/useAuth";
 import type { Bill, SharedBillAccess } from "../types";
@@ -79,17 +80,18 @@ export function SharedBillPage() {
 
   if (loading) {
     return (
-      <Layout narrow guest>
-        <StatusMessage>Loading bill...</StatusMessage>
+      <Layout guest>
+        <Loading message="Loading bill..." />
       </Layout>
     );
   }
 
   if (!bill) {
+    const invalidLink = error === "Invalid share link.";
     return (
-      <Layout narrow guest>
+      <Layout guest>
         <section className="card stack">
-          <h1 className="page-title">Bill not found</h1>
+          <h1 className="page-title">{invalidLink ? "Invalid share link" : "Could not load bill"}</h1>
           <AlertMessage type="error" message={error || "This link may be invalid or the bill may have been deleted."} />
         </section>
       </Layout>
@@ -97,7 +99,7 @@ export function SharedBillPage() {
   }
 
   return (
-    <Layout narrow guest>
+    <Layout guest>
       <h1 className="page-title">{bill.title}</h1>
       {bill.restaurantName ? <p className="bill-restaurant">{bill.restaurantName}</p> : null}
       <p className="muted">{bill.currency.code}</p>
