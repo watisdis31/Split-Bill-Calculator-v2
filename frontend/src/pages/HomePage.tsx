@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Layout } from "../components/Layout";
-import { StatusMessage } from "../components/Feedback";
+import { Loading } from "../components/Loading";
 import { useAuth } from "../hooks/useAuth";
 
 export function HomePage() {
@@ -9,7 +9,7 @@ export function HomePage() {
   if (loading) {
     return (
       <Layout guest>
-        <StatusMessage>Loading...</StatusMessage>
+        <Loading message="Loading..." />
       </Layout>
     );
   }

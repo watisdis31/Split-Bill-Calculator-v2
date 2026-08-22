@@ -30,9 +30,9 @@ export function ItemList({
 
   if (items.length === 0) {
     return (
-      <div className="empty muted">
-        <p>No items yet.</p>
-        <p>Add the first item from your receipt.</p>
+      <div className="empty">
+        <p className="empty-title">No items yet</p>
+        <p className="empty-copy">Add the first item from your receipt.</p>
       </div>
     );
   }

@@ -1,6 +1,10 @@
 import { useState } from "react";
 import type { BillCharges, BillItem, Currency } from "../types";
-import { calculatePersonalShare } from "../utils/calculations";
+import {
+  calculatePercentage,
+  calculatePersonalShare,
+  formatSummaryChargePercentage,
+} from "../utils/calculations";
 import { formatMoney } from "../utils/currency";
 import { PersonalItemSelector } from "./PersonalItemSelector";
 import { Button } from "./Layout";
@@ -18,6 +22,13 @@ export function PersonalCalculator({
   const [result, setResult] = useState<ReturnType<typeof calculatePersonalShare> | null>(null);
 
   const live = calculatePersonalShare(items, charges, selections);
+
+  const serviceLabel = result
+    ? formatSummaryChargePercentage(calculatePercentage(charges.service, result.billSubtotal))
+    : null;
+  const taxLabel = result
+    ? formatSummaryChargePercentage(calculatePercentage(charges.tax, result.billSubtotal))
+    : null;
 
   function calculate() {
     setResult(calculatePersonalShare(items, charges, selections));
@@ -58,11 +69,11 @@ export function PersonalCalculator({
             <span>-{formatMoney(result.personalDiscount, currency)}</span>
           </div>
           <div className="total-line">
-            <span>Service</span>
+            <span>{serviceLabel ? `Service (${serviceLabel})` : "Service"}</span>
             <span>{formatMoney(result.personalService, currency)}</span>
           </div>
           <div className="total-line">
-            <span>Tax</span>
+            <span>{taxLabel ? `Tax (${taxLabel})` : "Tax"}</span>
             <span>{formatMoney(result.personalTax, currency)}</span>
           </div>
           <div className="you-pay">

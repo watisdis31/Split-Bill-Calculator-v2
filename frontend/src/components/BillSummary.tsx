@@ -1,5 +1,9 @@
 import type { BillCharges, Currency } from "../types";
-import { calculateBillTotals } from "../utils/calculations";
+import {
+  calculateBillTotals,
+  calculatePercentage,
+  formatSummaryChargePercentage,
+} from "../utils/calculations";
 import { formatMoney } from "../utils/currency";
 
 export function BillSummary({
@@ -12,6 +16,10 @@ export function BillSummary({
   currency: Currency;
 }) {
   const totals = calculateBillTotals(items, charges);
+  const serviceLabel = formatSummaryChargePercentage(
+    calculatePercentage(totals.service, totals.subtotal)
+  );
+  const taxLabel = formatSummaryChargePercentage(calculatePercentage(totals.tax, totals.subtotal));
 
   return (
     <div>
@@ -24,11 +32,11 @@ export function BillSummary({
         <span>-{formatMoney(totals.discountAmount, currency)}</span>
       </div>
       <div className="total-line">
-        <span>Service</span>
+        <span>{serviceLabel ? `Service (${serviceLabel})` : "Service"}</span>
         <span>{formatMoney(totals.service, currency)}</span>
       </div>
       <div className="total-line">
-        <span>Tax</span>
+        <span>{taxLabel ? `Tax (${taxLabel})` : "Tax"}</span>
         <span>{formatMoney(totals.tax, currency)}</span>
       </div>
       <div className="you-pay">

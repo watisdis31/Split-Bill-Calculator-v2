@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import { Button } from "./Layout";
 import { BillCard } from "./BillCard";
 import { BillToolbar } from "./BillToolbar";
-import { AlertMessage, StatusMessage } from "./Feedback";
+import { AlertMessage } from "./Feedback";
+import { Loading } from "./Loading";
 import { api } from "../services/api";
 import { getErrorMessage } from "../hooks/useAuth";
 import type { BillListItem } from "../types";
@@ -17,6 +18,7 @@ export function BillSection({
   emptyTitle,
   emptyCopy,
   emptyAction,
+  headerAction,
   reloadToken = 0,
   renderActions,
 }: {
@@ -26,6 +28,7 @@ export function BillSection({
   emptyTitle: string;
   emptyCopy: string;
   emptyAction?: ReactNode;
+  headerAction?: ReactNode;
   reloadToken?: number;
   renderActions: (bill: BillListItem) => ReactNode;
 }) {
@@ -41,11 +44,12 @@ export function BillSection({
   const [years, setYears] = useState<number[]>([]);
   const [restaurants, setRestaurants] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState("");
   const requestId = useRef(0);
 
   const hasFilters = Boolean(search || restaurant || month || year || sort !== "desc");
-  const noBills = !loading && bills.length === 0;
+  const noBills = hasLoaded && !loading && !error && bills.length === 0;
   const showEmptyAccount = noBills && !hasFilters;
   const showFilteredEmpty = noBills && hasFilters;
 
@@ -94,7 +98,10 @@ export function BillSection({
         if (cancelled || id !== requestId.current) return;
         setError(getErrorMessage(err, "Could not load bills."));
       } finally {
-        if (!cancelled && id === requestId.current) setLoading(false);
+        if (!cancelled && id === requestId.current) {
+          setLoading(false);
+          setHasLoaded(true);
+        }
       }
     }
 
@@ -116,9 +123,22 @@ export function BillSection({
 
   return (
     <section>
-      <h2 className="page-title bill-section-title">{title}</h2>
+      {headerAction ? (
+        <div className="bill-section-header">
+          <h2 className="page-title bill-section-title">{title}</h2>
+          {headerAction}
+        </div>
+      ) : (
+        <h2 className="page-title bill-section-title">{title}</h2>
+      )}
 
-      {showEmptyAccount ? (
+      {!hasLoaded ? (
+        <section className="card">
+          <Loading message="Loading bills..." />
+        </section>
+      ) : error && bills.length === 0 && !hasFilters ? (
+        <AlertMessage type="error" message={error} />
+      ) : showEmptyAccount ? (
         <section className="card empty">
           <p className="empty-title">{emptyTitle}</p>
           <p className="empty-copy">{emptyCopy}</p>
@@ -156,8 +176,12 @@ export function BillSection({
             onReset={resetFilters}
           />
 
-          {loading && bills.length === 0 ? <StatusMessage>Loading bills...</StatusMessage> : null}
-          {loading && bills.length > 0 ? <StatusMessage>Updating bills...</StatusMessage> : null}
+          {loading && bills.length === 0 ? (
+            <section className="card">
+              <Loading message="Loading bills..." />
+            </section>
+          ) : null}
+          {loading && bills.length > 0 ? <Loading message="Updating bills..." inline /> : null}
           <AlertMessage type="error" message={error} />
 
           {showFilteredEmpty ? (

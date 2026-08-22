@@ -50,13 +50,6 @@ export function DashboardPage() {
 
   return (
     <Layout>
-      <div className="row-spread">
-        <h1 className="page-title">Your bills</h1>
-        <Link className="btn" to="/bills/new">
-          + Create bill
-        </Link>
-      </div>
-
       <BillSection
         title="My bills"
         scope="owned"
@@ -66,6 +59,11 @@ export function DashboardPage() {
         emptyAction={
           <Link className="btn" to="/bills/new">
             Create bill
+          </Link>
+        }
+        headerAction={
+          <Link className="btn" to="/bills/new">
+            + Create bill
           </Link>
         }
         reloadToken={ownedTick}

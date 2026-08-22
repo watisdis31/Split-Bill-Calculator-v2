@@ -2,7 +2,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { safeRedirectPath } from "../utils/redirect";
-import { StatusMessage } from "./Feedback";
+import { Loading } from "./Loading";
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -11,7 +11,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="shell">
-        <StatusMessage>Loading...</StatusMessage>
+        <Loading message="Loading..." />
       </div>
     );
   }
@@ -31,7 +31,7 @@ export function GuestRoute({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="shell">
-        <StatusMessage>Loading...</StatusMessage>
+        <Loading message="Loading..." />
       </div>
     );
   }

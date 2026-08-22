@@ -5,17 +5,15 @@ import { AlertMessage } from "./Feedback";
 
 export function Layout({
   children,
-  narrow = false,
   guest = false,
 }: {
   children: ReactNode;
-  narrow?: boolean;
   guest?: boolean;
 }) {
   const { user, logout } = useAuth();
 
   return (
-    <div className={`shell ${narrow ? "shell-narrow" : ""}`}>
+    <div className="shell">
       <header className="header">
         <Link to={user ? "/dashboard" : "/"} className="brand">
           EasySplitBill
