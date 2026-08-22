@@ -99,6 +99,7 @@ export function SharedBillPage() {
   return (
     <Layout narrow guest>
       <h1 className="page-title">{bill.title}</h1>
+      {bill.restaurantName ? <p className="bill-restaurant">{bill.restaurantName}</p> : null}
       <p className="muted">{bill.currency.code}</p>
 
       <div className="actions" style={{ marginBottom: "1rem" }}>

@@ -478,6 +478,25 @@ label {
   overflow-wrap: anywhere;
 }
 
+.bill-card-restaurant {
+  display: block;
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.bill-restaurant {
+  margin: -0.45rem 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
 .bill-card-meta {
   flex: none;
   display: flex;
@@ -660,8 +679,13 @@ label {
   overflow: visible;
 }
 
+.bill-toolbar > .field {
+  min-width: 0;
+}
+
 .bill-toolbar .input,
 .bill-toolbar .select {
+  max-width: 100%;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 

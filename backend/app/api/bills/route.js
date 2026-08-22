@@ -34,6 +34,7 @@ export async function GET(request) {
       hasPreviousPage: result.page > 1,
       hasNextPage: result.page < totalPages && result.total > 0,
       years: result.years,
+      restaurants: result.restaurants,
     });
   } catch (error) {
     return handleError(error);

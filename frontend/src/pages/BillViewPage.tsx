@@ -98,6 +98,7 @@ export function BillViewPage() {
   return (
     <Layout narrow>
       <h1 className="page-title">{bill.title}</h1>
+      {bill.restaurantName ? <p className="bill-restaurant">{bill.restaurantName}</p> : null}
       <p className="muted">{bill.currency.code}</p>
       <AlertMessage type="error" message={error} />
 
