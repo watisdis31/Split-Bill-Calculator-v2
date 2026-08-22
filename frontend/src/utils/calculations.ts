@@ -4,6 +4,12 @@
  *
  * All money values are integer minor units.
  * PERCENTAGE discounts are integer basis points (10% = 1000).
+ *
+ * Discount timing:
+ * - BEFORE_CHARGES: discount is based on item subtotal
+ * - AFTER_CHARGES: discount is based on subtotal + tax + service
+ *
+ * Tax and service are fixed amounts, not recalculated from a discounted subtotal.
  */
 
 import type { BillCharges, BillItem } from "../types";
@@ -19,7 +25,9 @@ export function billSubtotal(items: Array<{ price: number; quantity: number }>):
 export function calculatePercentage(amount: number, subtotal: number): number | null {
   const base = Number(subtotal) || 0;
   if (base <= 0) return null;
-  return ((Number(amount) || 0) / base) * 100;
+  const value = ((Number(amount) || 0) / base) * 100;
+  if (!Number.isFinite(value) || value < 0) return null;
+  return value;
 }
 
 function roundPercentageDisplay(percentage: number): string {
@@ -27,26 +35,53 @@ function roundPercentageDisplay(percentage: number): string {
   return rounded.toFixed(2).replace(/\.?0+$/, "");
 }
 
+function isDisplayablePercentage(percentage: number | null): percentage is number {
+  return percentage !== null && Number.isFinite(percentage) && percentage >= 0;
+}
+
 export function formatChargePercentageIndicator(percentage: number | null): string {
-  if (percentage === null) return "—";
+  if (!isDisplayablePercentage(percentage)) return "—";
   return `≈ ${roundPercentageDisplay(percentage)}%`;
 }
 
 export function formatSummaryChargePercentage(percentage: number | null): string | null {
-  if (percentage === null) return null;
+  if (!isDisplayablePercentage(percentage)) return null;
   return `${roundPercentageDisplay(percentage)}%`;
+}
+
+export function getDiscountBase(subtotal: number, charges: BillCharges): number {
+  const items = Number(subtotal) || 0;
+  if (charges.discountTiming === "AFTER_CHARGES") {
+    return items + (Number(charges.tax) || 0) + (Number(charges.service) || 0);
+  }
+  return items;
 }
 
 export function getDiscountAmount(subtotal: number, charges: BillCharges): number {
   const value = Number(charges.discount) || 0;
-  if (value <= 0 || subtotal <= 0) return 0;
+  const base = getDiscountBase(subtotal, charges);
+  if (value <= 0 || base <= 0) return 0;
 
   if (charges.discountType === "PERCENTAGE") {
-    const amount = Math.round((subtotal * value) / 10000);
-    return Math.min(Math.max(amount, 0), subtotal);
+    const amount = Math.round((base * value) / 10000);
+    return Math.min(Math.max(amount, 0), base);
   }
 
-  return Math.min(value, subtotal);
+  return Math.min(value, base);
+}
+
+export function getDiscountPercentageForDisplay(
+  charges: BillCharges,
+  subtotal: number,
+  appliedDiscountAmount?: number
+): number | null {
+  if (charges.discountType === "PERCENTAGE") {
+    const pct = (Number(charges.discount) || 0) / 100;
+    if (!Number.isFinite(pct) || pct < 0) return null;
+    return pct;
+  }
+  const amount = appliedDiscountAmount ?? (Number(charges.discount) || 0);
+  return calculatePercentage(amount, getDiscountBase(subtotal, charges));
 }
 
 export function calculateBillTotals(
@@ -108,18 +143,8 @@ export function calculatePersonalShare(
   }
 
   const personalDiscount = roundShare(discountAmount, yours, billTotalItems);
-
-  let personalService: number;
-  let personalTax: number;
-
-  if (charges.discountTiming === "BEFORE_CHARGES") {
-    const base = Math.max(billTotalItems - discountAmount, 1);
-    personalService = roundShare(service, yours, base);
-    personalTax = roundShare(tax, yours, base);
-  } else {
-    personalService = roundShare(service, yours, billTotalItems);
-    personalTax = roundShare(tax, yours, billTotalItems);
-  }
+  const personalService = roundShare(service, yours, billTotalItems);
+  const personalTax = roundShare(tax, yours, billTotalItems);
 
   return {
     billSubtotal: billTotalItems,

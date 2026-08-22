@@ -4,7 +4,7 @@ export async function findUserByUsername(username, db = { query }) {
   const result = await db.query(
     `SELECT "UserId", "username", "userPassword", "createdAt", "updatedAt"
      FROM "Users"
-     WHERE "username" = $1`,
+     WHERE LOWER("username") = LOWER($1)`,
     [username]
   );
   return result.rows[0] || null;

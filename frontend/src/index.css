@@ -53,6 +53,8 @@ textarea {
 }
 
 .header {
+  position: relative;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -62,11 +64,21 @@ textarea {
 }
 
 .brand {
+  min-width: 0;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   text-decoration: none;
   font-size: 1.05rem;
+}
+
+.header-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
 }
 
 .header-actions {
@@ -93,6 +105,95 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.header-menu-toggle,
+.header-menu {
+  display: none;
+}
+
+.header-menu-toggle {
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: 0;
+  padding: 0;
+  border: 2px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.header-menu-toggle svg {
+  display: block;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.header-menu-toggle:hover,
+.header-menu-toggle:focus-visible,
+.header-menu-toggle[aria-expanded="true"] {
+  background: var(--btn-face);
+  box-shadow: 2px 2px 0 var(--line);
+  outline: none;
+}
+
+.header-menu {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  left: 0;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.45rem;
+  border: 2px solid var(--line);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-0.35rem);
+  transition: opacity 180ms ease, transform 180ms ease, visibility 180ms ease;
+}
+
+.header-menu.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+}
+
+.header-menu-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 2.75rem;
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border: 2px solid transparent;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.header-menu-link:hover,
+.header-menu-link.active,
+.header-menu-link:focus-visible,
+.header-menu-link-accent {
+  background: var(--btn-face);
+  border-color: var(--line);
+  box-shadow: 2px 2px 0 var(--line);
+  outline: none;
 }
 
 h1,
@@ -276,6 +377,51 @@ textarea.input-invalid:focus-visible {
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.04em;
+}
+
+.input-shell.input-invalid {
+  border-color: var(--danger);
+}
+
+.input-shell.input-invalid:focus-within {
+  box-shadow: 2px 2px 0 var(--danger);
+}
+
+.password-field-shell .input {
+  flex: 1;
+  min-width: 0;
+  padding-right: 0.35rem;
+}
+
+.password-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2.75rem;
+  min-width: 2.75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.password-toggle:hover {
+  color: var(--ink);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--line);
+  outline-offset: -4px;
+}
+
+.password-toggle svg {
+  display: block;
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 .charge-field-shell .input {
@@ -573,6 +719,10 @@ textarea.input-invalid:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .header-menu {
+    transition: none;
+  }
+
   .loading-block {
     animation: none;
     background: #fff;
@@ -798,10 +948,21 @@ textarea.input-invalid:focus-visible {
 }
 
 .bill-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.1rem;
+  min-width: 0;
+  overflow: visible;
   padding-top: 0.55rem;
   padding-right: 0.7rem;
   padding-bottom: 0.7rem;
   justify-content: flex-end;
+}
+
+.bill-card-actions > * {
+  flex: 0 1 auto;
+  max-width: 100%;
 }
 
 .actions {
@@ -1186,9 +1347,38 @@ textarea.input-invalid:focus-visible {
 }
 
 @media (max-width: 479px) {
+  .header {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+  }
+
+  .header-end {
+    gap: 0.5rem;
+  }
+
+  .header-end .user-chip {
+    max-width: min(9.5rem, 38vw);
+  }
+
+  .header-actions {
+    display: none;
+  }
+
+  .header-menu-toggle {
+    display: flex;
+  }
+
+  .header-menu {
+    display: flex;
+  }
+
   .fields-split-stack,
   .fields-split-wide {
     grid-template-columns: 1fr;
+  }
+
+  .bill-card {
+    gap: 0.65rem;
   }
 
   .bill-card-info {
@@ -1203,6 +1393,30 @@ textarea.input-invalid:focus-visible {
   }
 
   .bill-card-actions {
-    justify-content: flex-start;
+    justify-content: flex-end;
+    gap: 0.7rem 0.45rem;
+    padding-top: 0.15rem;
+    padding-right: 0.45rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .bill-card-actions .btn {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.55rem;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  .bill-card-actions > :last-child:nth-child(2) {
+    flex: 1 1 auto;
+    white-space: normal;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 339px) {
+  .bill-card-actions > :nth-child(n + 3) {
+    flex: 1 1 100%;
   }
 }

@@ -4,6 +4,7 @@ import {
   calculatePercentage,
   calculatePersonalShare,
   formatSummaryChargePercentage,
+  getDiscountPercentageForDisplay,
 } from "../utils/calculations";
 import { formatMoney } from "../utils/currency";
 import { PersonalItemSelector } from "./PersonalItemSelector";
@@ -28,6 +29,11 @@ export function PersonalCalculator({
     : null;
   const taxLabel = result
     ? formatSummaryChargePercentage(calculatePercentage(charges.tax, result.billSubtotal))
+    : null;
+  const discountLabel = result
+    ? formatSummaryChargePercentage(
+        getDiscountPercentageForDisplay(charges, result.billSubtotal, result.discountAmount)
+      )
     : null;
 
   function calculate() {
@@ -65,7 +71,7 @@ export function PersonalCalculator({
             <span>{formatMoney(result.personalSubtotal, currency)}</span>
           </div>
           <div className="total-line">
-            <span>Discount</span>
+            <span>{discountLabel ? `Discount (${discountLabel})` : "Discount"}</span>
             <span>-{formatMoney(result.personalDiscount, currency)}</span>
           </div>
           <div className="total-line">
