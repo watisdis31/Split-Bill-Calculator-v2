@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { api } from "../services/api";
+import { api, SESSION_EXPIRED_EVENT } from "../services/api";
 import { ApiError } from "../types";
 import type { User } from "../types";
 
@@ -14,16 +14,20 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+async function restoreSession() {
+  const res = await api.me();
+  return res.data.user;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    api
-      .me()
-      .then((res) => {
-        if (!cancelled) setUser(res.data.user);
+    restoreSession()
+      .then((nextUser) => {
+        if (!cancelled) setUser(nextUser);
       })
       .catch(() => {
         if (!cancelled) setUser(null);
@@ -36,17 +40,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    function onSessionExpired() {
+      setUser(null);
+    }
+    window.addEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onSessionExpired);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       loading,
       async login(username, password) {
-        const res = await api.login(username, password);
-        setUser(res.data.user);
+        await api.login(username, password);
+        try {
+          setUser(await restoreSession());
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            throw new Error("Could not start a session. Please try again.");
+          }
+          throw err;
+        }
       },
       async register(username, password) {
-        const res = await api.register(username, password);
-        setUser(res.data.user);
+        await api.register(username, password);
+        try {
+          setUser(await restoreSession());
+        } catch (err) {
+          if (err instanceof ApiError && err.status === 401) {
+            throw new Error("Could not start a session. Please try again.");
+          }
+          throw err;
+        }
       },
       async logout() {
         try {

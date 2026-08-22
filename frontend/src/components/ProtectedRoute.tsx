@@ -11,7 +11,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="shell">
-        <Loading message="Loading..." />
+        <Loading message="Checking session..." />
       </div>
     );
   }
@@ -31,7 +31,7 @@ export function GuestRoute({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="shell">
-        <Loading message="Loading..." />
+        <Loading message="Checking session..." />
       </div>
     );
   }

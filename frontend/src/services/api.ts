@@ -10,7 +10,19 @@ import type {
   User,
 } from "../types";
 
-const BASE = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+const configured = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+const BASE = import.meta.env.DEV ? configured || "http://localhost:3000" : "";
+const SESSION_EXPIRED_EVENT = "easysplitbill:session-expired";
+
+function notifySessionExpired(path: string, status: number) {
+  if (status !== 401) return;
+  if (path.startsWith("/api/auth/login") || path.startsWith("/api/auth/register") || path.startsWith("/api/auth/me")) {
+    return;
+  }
+  window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+}
+
+export { SESSION_EXPIRED_EVENT };
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<ApiSuccess<T>> {
   let response: Response;
@@ -35,6 +47,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<ApiS
   }
 
   if (!response.ok || json.success === false) {
+    notifySessionExpired(path, response.status);
     throw new ApiError(json.message || "Request failed", response.status || 500);
   }
 

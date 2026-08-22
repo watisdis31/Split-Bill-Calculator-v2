@@ -126,11 +126,11 @@ Deploy as **two Vercel projects** from this monorepo (both free Hobby tier).
 NODE_ENV=production
 AUTH_SECRET=<long-random-string>
 DATABASE_URL=<supabase-pooler-connection-string>
-FRONTEND_URL=https://your-app.vercel.app
-BACKEND_URL=https://your-api.vercel.app
+FRONTEND_URL=https://ezsplitbill.vercel.app
+BACKEND_URL=https://ezsplitbill-server.vercel.app
 ```
 
-5. Deploy, then copy the backend URL (e.g. `https://easysplitbill-api.vercel.app`).
+5. Deploy, then copy the backend URL (e.g. `https://ezsplitbill-server.vercel.app`).
 
 ### Vercel frontend (`frontend/`)
 
@@ -140,15 +140,19 @@ BACKEND_URL=https://your-api.vercel.app
 4. Environment variables:
 
 ```env
-VITE_API_URL=https://your-api.vercel.app
+VITE_API_URL=
 ```
 
-5. Redeploy after setting `VITE_API_URL` (Vite bakes env vars at build time).
+Leave `VITE_API_URL` empty in production. The frontend calls `/api/...` on the same origin; `frontend/vercel.json` rewrites those requests to the backend.
+
+If the backend hostname changes, update the `/api/:path*` destination in `frontend/vercel.json`.
+
+5. Redeploy the frontend after changing `vercel.json`.
 
 ### Final step
 
-Update `FRONTEND_URL` on the **backend** project to match your live frontend URL, then redeploy the backend.
+Update `FRONTEND_URL` on the **backend** project to match your live frontend URL (`https://ezsplitbill.vercel.app`), then redeploy the backend.
 
-### Auth across domains
+### Auth cookies (same origin)
 
-Production uses `SameSite=None` session cookies so login works between the two Vercel projects. `FRONTEND_URL` on the backend must match your frontend URL exactly (https, no trailing slash).
+The browser talks only to the frontend origin. Session cookies are first-party (`SameSite=Lax`, `Secure` in production, `httpOnly`, `path=/`). Do not point the production frontend at the API hostname; Safari blocks those cross-site cookies.
