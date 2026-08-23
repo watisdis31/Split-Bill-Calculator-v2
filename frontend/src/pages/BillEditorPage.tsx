@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Layout, Button } from "../components/Layout";
 import { ItemForm } from "../components/ItemForm";
@@ -7,10 +7,10 @@ import type { DraftItem } from "../components/ItemList";
 import { ChargesForm } from "../components/ChargesForm";
 import { BillSummary } from "../components/BillSummary";
 import { ShareBillPanel } from "../components/ShareBillPanel";
-import { AlertMessage, FieldError, useToast } from "../components/Feedback";
+import { AccountPrompt, AlertMessage, FieldError, useToast } from "../components/Feedback";
 import { Loading } from "../components/Loading";
 import { api } from "../services/api";
-import { getErrorMessage } from "../hooks/useAuth";
+import { getErrorMessage, useAuth } from "../hooks/useAuth";
 import { billSubtotal } from "../utils/calculations";
 import type { BillCharges, Currency } from "../types";
 
@@ -22,14 +22,95 @@ const emptyCharges: BillCharges = {
   tax: 0,
 };
 
+const GUEST_DRAFT_KEY = "easysplitbill:guest-draft";
+const SAVE_SHARE_MESSAGE = "Create an account or login to save or share your bill.";
+
+interface GuestDraft {
+  title: string;
+  restaurantName: string;
+  currencyId: number | null;
+  items: Array<{
+    key: string;
+    name: string;
+    price: number;
+    quantity: number;
+    notes: string | null;
+  }>;
+  charges: BillCharges;
+}
+
 function newKey() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function isCharges(value: unknown): value is BillCharges {
+  if (!value || typeof value !== "object") return false;
+  const charges = value as BillCharges;
+  return (
+    typeof charges.discount === "number" &&
+    typeof charges.service === "number" &&
+    typeof charges.tax === "number" &&
+    (charges.discountType === "PERCENTAGE" || charges.discountType === "FIXED") &&
+    (charges.discountTiming === "BEFORE_CHARGES" || charges.discountTiming === "AFTER_CHARGES")
+  );
+}
+
+function readGuestDraft(): GuestDraft | null {
+  try {
+    const raw = sessionStorage.getItem(GUEST_DRAFT_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as GuestDraft;
+    if (!data || typeof data !== "object") return null;
+    if (typeof data.title !== "string" || typeof data.restaurantName !== "string") return null;
+    if (data.currencyId !== null && typeof data.currencyId !== "number") return null;
+    if (!Array.isArray(data.items) || !isCharges(data.charges)) return null;
+    return {
+      title: data.title,
+      restaurantName: data.restaurantName,
+      currencyId: data.currencyId,
+      charges: data.charges,
+      items: data.items
+        .filter(
+          (item) =>
+            item &&
+            typeof item.name === "string" &&
+            typeof item.price === "number" &&
+            typeof item.quantity === "number"
+        )
+        .map((item) => ({
+          key: typeof item.key === "string" ? item.key : newKey(),
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          notes: typeof item.notes === "string" ? item.notes : null,
+        })),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeGuestDraft(draft: GuestDraft) {
+  try {
+    sessionStorage.setItem(GUEST_DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    /* ignore quota / private-mode failures */
+  }
+}
+
+function clearGuestDraft() {
+  try {
+    sessionStorage.removeItem(GUEST_DRAFT_KEY);
+  } catch {
+    /* ignore */
+  }
 }
 
 export function BillEditorPage() {
   const { billId } = useParams();
   const isNew = !billId;
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [title, setTitle] = useState("");
   const [restaurantName, setRestaurantName] = useState("");
@@ -46,6 +127,7 @@ export function BillEditorPage() {
   const [titleError, setTitleError] = useState("");
   const [restaurantError, setRestaurantError] = useState("");
   const [loadFailed, setLoadFailed] = useState(false);
+  const draftReady = useRef(false);
   const { notify } = useToast();
 
   const currency = useMemo(
@@ -91,6 +173,20 @@ export function BillEditorPage() {
               notes: item.notes,
             }))
           );
+        } else {
+          const draft = readGuestDraft();
+          if (draft) {
+            setTitle(draft.title);
+            setRestaurantName(draft.restaurantName);
+            setCharges(draft.charges);
+            setItems(draft.items);
+            if (
+              draft.currencyId &&
+              currencyRes.data.currencies.some((c) => c.id === draft.currencyId)
+            ) {
+              setCurrencyId(draft.currencyId);
+            }
+          }
         }
       } catch (err) {
         if (!cancelled) {
@@ -102,7 +198,10 @@ export function BillEditorPage() {
           }
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          draftReady.current = true;
+          setLoading(false);
+        }
       }
     }
     void boot();
@@ -110,6 +209,44 @@ export function BillEditorPage() {
       cancelled = true;
     };
   }, [billId]);
+
+  useEffect(() => {
+    if (!isNew || user || loading || !draftReady.current) return;
+    writeGuestDraft({
+      title,
+      restaurantName,
+      currencyId,
+      items: items.map((item) => ({
+        key: item.key,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        notes: item.notes,
+      })),
+      charges,
+    });
+  }, [title, restaurantName, currencyId, items, charges, isNew, user, loading]);
+
+  function persistGuestDraft() {
+    writeGuestDraft({
+      title,
+      restaurantName,
+      currencyId,
+      items: items.map((item) => ({
+        key: item.key,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        notes: item.notes,
+      })),
+      charges,
+    });
+  }
+
+  function requireAccount() {
+    persistGuestDraft();
+    notify("info", SAVE_SHARE_MESSAGE);
+  }
 
   function addItem(item: Omit<DraftItem, "key" | "id">) {
     setItems((current) => [...current, { ...item, key: newKey() }]);
@@ -139,6 +276,10 @@ export function BillEditorPage() {
     setTitleError(nextTitleError);
     setRestaurantError(nextRestaurantError);
     if (nextTitleError || nextRestaurantError) return;
+    if (!user) {
+      requireAccount();
+      return;
+    }
     setSaving(true);
     setError("");
     const payload = {
@@ -175,11 +316,13 @@ export function BillEditorPage() {
           }))
         );
         notify("success", "Bill saved successfully.");
+        clearGuestDraft();
       } else {
         const res = await api.createBill(payload);
         setSavedId(res.data.bill.id);
         setShareToken(res.data.bill.shareToken || null);
         notify("success", "Bill created successfully.");
+        clearGuestDraft();
         navigate(`/bills/${res.data.bill.id}/edit`, { replace: true });
       }
     } catch (err) {
@@ -333,6 +476,15 @@ export function BillEditorPage() {
 
       <AlertMessage type="error" message={error} />
 
+      {!user && isNew ? (
+        <AccountPrompt
+          note="You can create and calculate this bill as a guest."
+          message={SAVE_SHARE_MESSAGE}
+          redirect="/bills/new"
+          onNavigate={persistGuestDraft}
+        />
+      ) : null}
+
       <Button
         className="btn-block"
         loading={saving}
@@ -341,6 +493,12 @@ export function BillEditorPage() {
       >
         {savedId ? "Save bill" : "Create bill"}
       </Button>
+
+      {!user && isNew ? (
+        <Button className="btn-secondary btn-block" onClick={requireAccount} style={{ marginTop: "1rem" }}>
+          Share bill
+        </Button>
+      ) : null}
 
       {savedId ? (
         <>

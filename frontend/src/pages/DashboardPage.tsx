@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 import { Layout, Button, ConfirmDialog } from "../components/Layout";
 import { OpenBillButton } from "../components/OpenBillButton";
 import { BillSection } from "../components/BillSection";
-import { useToast } from "../components/Feedback";
+import { AccountPrompt, useToast } from "../components/Feedback";
 import { api } from "../services/api";
-import { getErrorMessage } from "../hooks/useAuth";
+import { getErrorMessage, useAuth } from "../hooks/useAuth";
 import type { BillListItem } from "../types";
 
 export function DashboardPage() {
+  const { user } = useAuth();
   const [deleting, setDeleting] = useState<BillListItem | null>(null);
   const [removing, setRemoving] = useState<BillListItem | null>(null);
   const [busy, setBusy] = useState(false);
@@ -50,6 +51,21 @@ export function DashboardPage() {
 
   return (
     <Layout>
+      {!user ? (
+        <>
+          <div className="bill-section-header">
+            <h2 className="page-title bill-section-title">My bills</h2>
+            <Link className="btn" to="/bills/new">
+              + Create bill
+            </Link>
+          </div>
+          <AccountPrompt
+            title="Create an account or login"
+            message="Please create an account or login to see bill history or shared bills."
+          />
+        </>
+      ) : (
+        <>
       <BillSection
         title="My bills"
         scope="owned"
@@ -120,6 +136,8 @@ export function DashboardPage() {
           onConfirm={() => void confirmRemove()}
         />
       ) : null}
+        </>
+      )}
     </Layout>
   );
 }
