@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
@@ -35,6 +36,39 @@ export function FieldError({ id, message }: { id?: string; message?: string }) {
     <p id={id} className="field-error" role="alert">
       {message}
     </p>
+  );
+}
+
+export function AccountPrompt({
+  title,
+  message,
+  note,
+  redirect,
+  onNavigate,
+}: {
+  title?: string;
+  message: string;
+  note?: string;
+  redirect?: string;
+  onNavigate?: () => void;
+}) {
+  const loginTo = redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : "/login";
+  const registerTo = redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : "/register";
+
+  return (
+    <section className="card empty">
+      {title ? <p className="empty-title">{title}</p> : null}
+      {note ? <p className="empty-copy">{note}</p> : null}
+      <p className="empty-copy">{message}</p>
+      <div className="actions">
+        <Link className="btn btn-secondary" to={loginTo} onClick={onNavigate}>
+          Login
+        </Link>
+        <Link className="btn" to={registerTo} onClick={onNavigate}>
+          Register
+        </Link>
+      </div>
+    </section>
   );
 }
 

@@ -1024,6 +1024,15 @@ textarea.input-invalid:focus-visible {
   margin-top: 0.4rem;
 }
 
+.empty .actions {
+  justify-content: center;
+  margin-top: 0.4rem;
+}
+
+.empty .actions .btn {
+  margin-top: 0;
+}
+
 .overlay {
   position: fixed;
   inset: 0;

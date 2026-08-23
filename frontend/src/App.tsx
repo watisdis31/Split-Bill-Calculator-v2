@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { GuestRoute, ProtectedRoute } from "./components/ProtectedRoute";
+import { AuthReady, GuestRoute, ProtectedRoute } from "./components/ProtectedRoute";
 import { HomePage } from "./pages/HomePage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
@@ -31,17 +31,17 @@ export default function App() {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute>
+          <AuthReady>
             <DashboardPage />
-          </ProtectedRoute>
+          </AuthReady>
         }
       />
       <Route
         path="/bills/new"
         element={
-          <ProtectedRoute>
+          <AuthReady>
             <BillEditorPage />
-          </ProtectedRoute>
+          </AuthReady>
         }
       />
       <Route
