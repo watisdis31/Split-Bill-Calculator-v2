@@ -38,7 +38,6 @@ function menuLinkClass({ isActive }: { isActive: boolean }) {
 
 export function Layout({
   children,
-  guest = false,
 }: {
   children: ReactNode;
   guest?: boolean;
@@ -90,7 +89,7 @@ export function Layout({
   return (
     <div className="shell">
       <header className="header" ref={headerRef}>
-        <Link to={user ? "/dashboard" : "/"} className="brand">
+        <Link to="/dashboard" className="brand">
           EzSplitBill
         </Link>
         <div className="header-end">
@@ -109,7 +108,7 @@ export function Layout({
                   Logout
                 </button>
               </>
-            ) : guest ? (
+            ) : (
               <>
                 <NavLink to="/login" end className="btn btn-secondary">
                   Login
@@ -118,7 +117,7 @@ export function Layout({
                   Register
                 </NavLink>
               </>
-            ) : null}
+            )}
           </div>
 
           {!loading ? (

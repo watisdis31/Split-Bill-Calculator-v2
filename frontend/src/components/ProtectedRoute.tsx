@@ -24,6 +24,20 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   return children;
 }
 
+export function AuthReady({ children }: { children: ReactNode }) {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="shell">
+        <Loading message="Checking session..." />
+      </div>
+    );
+  }
+
+  return children;
+}
+
 export function GuestRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const location = useLocation();

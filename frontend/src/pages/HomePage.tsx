@@ -26,11 +26,11 @@ export function HomePage() {
             </Link>
           ) : (
             <>
-              <Link className="btn" to="/register">
-                Create account
+              <Link className="btn" to="/bills/new">
+                Create a bill
               </Link>
-              <Link className="btn btn-secondary" to="/login">
-                Login
+              <Link className="btn btn-secondary" to="/dashboard">
+                Open dashboard
               </Link>
             </>
           )}
