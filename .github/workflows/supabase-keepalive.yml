@@ -15,4 +15,4 @@ jobs:
           curl -sS \
             -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
             -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
-            "${{ secrets.SUPABASE_URL }}/rest/v1/your_table?select=id&limit=1"
+            "${{ secrets.SUPABASE_URL }}/rest/v1/HealthCheck?select=id&limit=1"
