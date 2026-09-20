@@ -31,20 +31,24 @@ const BILL_SCHEMA = {
   required: ["items"],
 };
 
-const PROMPT = `Analyze this restaurant bill / receipt image and extract structured data.
+const PROMPT = `Analyze this restaurant bill / receipt image carefully and extract structured data.
+
+Process the receipt step-by-step:
+1. Scan the receipt top-to-bottom to count total line items. Ensure every purchased item is accounted for.
+2. Extract numeric values by correctly identifying thousands separators (e.g., in IDR, "25.000" or "25,000" represents 25000, NOT 25.0).
 
 Rules:
-- Return JSON that matches the schema.
-- Amounts are plain numbers in the receipt's own currency (major units, decimals allowed). Example: 12.50 or 50000.
-- unitPrice is the price of one unit, not the line total. If the receipt only shows a line total, divide by quantity.
-- quantity is an integer of at least 1.
-- Do not include subtotal, tax, service charge, discount, or grand-total rows in items.
-- name is the main dish or drink title only (for example "Bakmie Khas Sinilagi" or "Latte").
-- notes is for indented or secondary modifier lines under that item: flavor, temperature, size, blend, extras. Examples: "Asin Gurih", "Hot", "Sinilagi Blend - Medium". Join multiple modifiers with ", ". Omit prices such as Rp 0 from notes. Use null when there is no modifier.
-- Do not create a separate item for a modifier-only or zero-price option line; attach it to the parent item's notes.
-- Use null when a value is not clearly printed. Do not guess.
-- currencyCode is a 3-letter code such as IDR or USD when you can tell, otherwise null.
-- restaurantName is the venue name if printed, otherwise null.`;
+- Return JSON matching the schema.
+- Amounts: Convert prices to clean integer/float numbers in major currency units. Retain all full digits (e.g., convert "Rp 50.000" directly to 50000).
+- unitPrice: Price for one single unit. If only line total is shown, calculate (line total / quantity).
+- quantity: Integer, minimum 1.
+- Items Array: Include only purchased food/drink items. Place charges, subtotals, taxes, tips, discounts, or service fees in their respective top-level fields instead of the items array.
+- name: Primary item title only (e.g., "Bakmie Khas Sinilagi").
+- notes: Secondary modifiers/options printed underneath the main item (e.g., "Hot", "Asin Gurih", "Sinilagi Blend - Medium"). Combine multiple modifiers with ", ". Ignore zero-price modifier entries ($0 / Rp 0). Set to null if none exist.
+- Attach child options/modifiers directly to their parent item's notes field.
+- currencyCode: 3-letter ISO code (e.g., IDR, USD) if identifiable; otherwise null.
+- restaurantName: Venue name if printed; otherwise null.
+- Null Values: Use null for unreadable or missing fields. Do not guess ambiguous numbers.`;
 
 let client = null;
 
