@@ -75,6 +75,25 @@ export interface SharedBillAccess {
   isSaved: boolean;
 }
 
+export interface ScannedBillItem {
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number | null;
+  notes: string | null;
+}
+
+export interface ScannedBill {
+  restaurantName: string | null;
+  currencyCode: string | null;
+  items: ScannedBillItem[];
+  subtotal: number | null;
+  tax: number | null;
+  service: number | null;
+  discount: number | null;
+  grandTotal: number | null;
+}
+
 export interface ApiSuccess<T> {
   success: true;
   message: string;

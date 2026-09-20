@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthReady, GuestRoute, ProtectedRoute } from "./components/ProtectedRoute";
 import { HomePage } from "./pages/HomePage";
+import { HowItWorksPage } from "./pages/HowItWorksPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { DashboardPage } from "./pages/DashboardPage";
@@ -12,6 +13,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/how-it-works" element={<HowItWorksPage />} />
       <Route
         path="/login"
         element={

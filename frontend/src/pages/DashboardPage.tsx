@@ -138,6 +138,11 @@ export function DashboardPage() {
       ) : null}
         </>
       )}
+      <div className="actions" style={{ marginTop: "1rem" }}>
+        <Link className="btn btn-secondary" to="/how-it-works">
+          How It Works
+        </Link>
+      </div>
     </Layout>
   );
 }

@@ -6,6 +6,7 @@ import type {
   BillItem,
   BillListItem,
   Currency,
+  ScannedBill,
   SharedBillAccess,
   User,
 } from "../types";
@@ -207,6 +208,12 @@ export const api = {
   unsaveBill(billId: number) {
     return request<{ access: SharedBillAccess }>(`/api/bills/${billId}/save`, {
       method: "DELETE",
+    });
+  },
+  scanBill(image: string) {
+    return request<{ scan: ScannedBill }>("/api/bills/scan", {
+      method: "POST",
+      body: JSON.stringify({ image }),
     });
   },
 };

@@ -48,9 +48,12 @@ AUTH_SECRET=replace-with-a-long-random-secret
 FRONTEND_URL=http://localhost:5173
 BACKEND_URL=http://localhost:3000
 NODE_ENV=development
+GEMINI_API_KEY=
 ```
 
 `AUTH_SECRET` must be a long random string. Never commit the real `.env` file.
+
+`GEMINI_API_KEY` is optional. Leave it empty to disable bill scanning. Create the key in [Google AI Studio](https://aistudio.google.com/apikey) on a Google Cloud project with **no billing account attached**. Google cannot charge a key that has no billing enabled; once the free tier is used up the API returns `429`, and the app asks the user to enter items manually. Do not enable pay-as-you-go on that project. The app pins `gemini-3.6-flash` in code (free-tier model) and does not read the model name from env.
 
 ### Frontend
 
@@ -128,7 +131,10 @@ AUTH_SECRET=<long-random-string>
 DATABASE_URL=<supabase-pooler-connection-string>
 FRONTEND_URL=https://ezsplitbill.vercel.app
 BACKEND_URL=https://ezsplitbill-server.vercel.app
+GEMINI_API_KEY=
 ```
+
+Leave `GEMINI_API_KEY` empty to disable scanning in production. If you set it, use a key from a project with no billing account, same as local.
 
 5. Deploy, then copy the backend URL (e.g. `https://ezsplitbill-server.vercel.app`).
 

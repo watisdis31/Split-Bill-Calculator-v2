@@ -34,6 +34,9 @@ export function HomePage() {
               </Link>
             </>
           )}
+          <Link className="btn btn-secondary" to="/how-it-works">
+            How It Works
+          </Link>
         </div>
       </section>
     </Layout>
