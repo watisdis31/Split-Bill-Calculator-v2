@@ -1,5 +1,31 @@
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_EDGE = 1600;
+const CONTRAST_FACTOR = 8.8;
+const CONTRAST_MIDPOINT = 180;
+
+function boostContrast(imageData: ImageData): void {
+  const pixels = imageData.data;
+  for (let index = 0; index < pixels.length; index += 4) {
+    pixels[index] = Math.max(
+      0,
+      Math.min(255, (pixels[index] - CONTRAST_MIDPOINT) * CONTRAST_FACTOR + CONTRAST_MIDPOINT)
+    );
+    pixels[index + 1] = Math.max(
+      0,
+      Math.min(
+        255,
+        (pixels[index + 1] - CONTRAST_MIDPOINT) * CONTRAST_FACTOR + CONTRAST_MIDPOINT
+      )
+    );
+    pixels[index + 2] = Math.max(
+      0,
+      Math.min(
+        255,
+        (pixels[index + 2] - CONTRAST_MIDPOINT) * CONTRAST_FACTOR + CONTRAST_MIDPOINT
+      )
+    );
+  }
+}
 
 export function fileToScanDataUrl(file: File): Promise<string> {
   if (!file || file.size === 0) {
@@ -28,6 +54,9 @@ export function fileToScanDataUrl(file: File): Promise<string> {
           return;
         }
         context.drawImage(image, 0, 0, width, height);
+        const imageData = context.getImageData(0, 0, width, height);
+        boostContrast(imageData);
+        context.putImageData(imageData, 0, 0);
         resolve(canvas.toDataURL("image/jpeg", 0.85));
       } catch {
         reject(new Error("Could not process this image."));
