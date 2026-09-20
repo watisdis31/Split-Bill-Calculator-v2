@@ -272,3 +272,43 @@ export function parseBillListQuery(searchParams) {
     sort: searchParams.get("sort") === "asc" ? "asc" : "desc",
   };
 }
+
+const SCAN_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_SCAN_BYTES = 4 * 1024 * 1024;
+const SCAN_DATA_URL = /^data:(image\/[a-z+]+);base64,(.+)$/i;
+
+export function parseScanImage(value) {
+  if (typeof value !== "string" || !value.trim()) {
+    return { error: "A bill image is required" };
+  }
+
+  const match = value.trim().match(SCAN_DATA_URL);
+  if (!match) {
+    return { error: "A bill image is required" };
+  }
+
+  const mimeType = match[1].toLowerCase() === "image/jpg" ? "image/jpeg" : match[1].toLowerCase();
+  if (!SCAN_IMAGE_TYPES.includes(mimeType)) {
+    return { error: "Image must be JPG, PNG, or WEBP" };
+  }
+
+  const data = match[2].replace(/\s/g, "");
+  if (!data) {
+    return { error: "A bill image is required" };
+  }
+
+  let bytes;
+  try {
+    bytes = Buffer.from(data, "base64");
+  } catch {
+    return { error: "A bill image is required" };
+  }
+  if (!bytes.length) {
+    return { error: "A bill image is required" };
+  }
+  if (bytes.length > MAX_SCAN_BYTES) {
+    return { error: "Image is too large. Please use a smaller photo" };
+  }
+
+  return { value: { mimeType, data } };
+}

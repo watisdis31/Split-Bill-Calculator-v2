@@ -3,6 +3,7 @@ import type { Currency } from "../types";
 import { formatMoney } from "../utils/currency";
 import { itemTotal } from "../utils/calculations";
 import { ConfirmDialog } from "./Layout";
+import { ItemForm, type ItemFormValues } from "./ItemForm";
 
 export interface DraftItem {
   key: string;
@@ -17,16 +18,17 @@ export function ItemList({
   items,
   currency,
   editable = false,
-  onEdit,
+  onSave,
   onDelete,
 }: {
   items: DraftItem[];
   currency: Currency;
   editable?: boolean;
-  onEdit?: (item: DraftItem) => void;
+  onSave?: (item: DraftItem, values: ItemFormValues) => void;
   onDelete?: (item: DraftItem) => void;
 }) {
   const [pending, setPending] = useState<DraftItem | null>(null);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
 
   if (items.length === 0) {
     return (
@@ -43,26 +45,43 @@ export function ItemList({
     <div>
       {items.map((item) => (
         <div className="item" key={item.key}>
-          <div className="row-spread">
-            <div>
-              <div className="item-name">{item.name}</div>
-              <div className="item-meta">
-                {formatMoney(item.price, currency)} × {item.quantity}
+          {editable && editingKey === item.key ? (
+            <ItemForm
+              key={item.key}
+              currency={currency}
+              initial={item}
+              submitLabel="Save"
+              idPrefix={`edit-${item.key}`}
+              onSubmit={(values) => {
+                onSave?.(item, values);
+                setEditingKey(null);
+              }}
+              onCancel={() => setEditingKey(null)}
+            />
+          ) : (
+            <>
+              <div className="row-spread">
+                <div>
+                  <div className="item-name">{item.name}</div>
+                  <div className="item-meta">
+                    {formatMoney(item.price, currency)} × {item.quantity}
+                  </div>
+                  {item.notes ? <div className="item-meta">{item.notes}</div> : null}
+                </div>
+                <strong>{formatMoney(itemTotal(item), currency)}</strong>
               </div>
-              {item.notes ? <div className="item-meta">{item.notes}</div> : null}
-            </div>
-            <strong>{formatMoney(itemTotal(item), currency)}</strong>
-          </div>
-          {editable ? (
-            <div className="actions" style={{ marginTop: "0.5rem" }}>
-              <button type="button" className="btn btn-secondary" onClick={() => onEdit?.(item)}>
-                Edit
-              </button>
-              <button type="button" className="btn btn-danger" onClick={() => setPending(item)}>
-                Delete
-              </button>
-            </div>
-          ) : null}
+              {editable ? (
+                <div className="actions" style={{ marginTop: "0.5rem" }}>
+                  <button type="button" className="btn btn-secondary" onClick={() => setEditingKey(item.key)}>
+                    Edit
+                  </button>
+                  <button type="button" className="btn btn-danger" onClick={() => setPending(item)}>
+                    Delete
+                  </button>
+                </div>
+              ) : null}
+            </>
+          )}
         </div>
       ))}
       <div className="total-line">
