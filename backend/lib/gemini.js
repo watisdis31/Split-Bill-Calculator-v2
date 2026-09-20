@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const MODEL = "gemini-3.6-flash";
+const MODEL = "gemini-3.6-flash-lite";
 const MAX_ITEMS = 100;
 
 const BILL_SCHEMA = {
