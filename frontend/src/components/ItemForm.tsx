@@ -5,7 +5,7 @@ import { unitPriceFromMultiple } from "../utils/calculations";
 import { Button } from "./Layout";
 import { FieldError } from "./Feedback";
 
-interface ItemFormValues {
+export interface ItemFormValues {
   name: string;
   price: number;
   quantity: number;
@@ -17,11 +17,15 @@ export function ItemForm({
   submitLabel = "Add",
   initial,
   onSubmit,
+  onCancel,
+  idPrefix = "item",
 }: {
   currency: Currency;
   submitLabel?: string;
   initial?: { name: string; price: number; quantity: number; notes: string | null };
   onSubmit: (item: ItemFormValues) => void;
+  onCancel?: () => void;
+  idPrefix?: string;
 }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [price, setPrice] = useState(initial ? minorToInput(initial.price, currency.decimalPlaces) : "");
@@ -75,65 +79,70 @@ export function ItemForm({
     }
   }
 
+  const nameId = `${idPrefix}-name`;
+  const priceId = `${idPrefix}-price`;
+  const qtyId = `${idPrefix}-qty`;
+  const notesId = `${idPrefix}-notes`;
+
   return (
-    <form className="stack" onSubmit={handleSubmit}>
+    <form className="stack" onSubmit={handleSubmit} aria-label={onCancel ? "Edit item" : undefined}>
       <div className="field">
-        <label htmlFor="item-name">Item name</label>
+        <label htmlFor={nameId}>Item name</label>
         <input
-          id="item-name"
+          id={nameId}
           className={`input${nameError ? " input-invalid" : ""}`}
           value={name}
           aria-invalid={Boolean(nameError)}
-          aria-describedby={nameError ? "item-name-error" : undefined}
+          aria-describedby={nameError ? `${nameId}-error` : undefined}
           onChange={(e) => {
             setName(e.target.value);
             setNameError("");
           }}
           placeholder="Food / Drink Name"
         />
-        <FieldError id="item-name-error" message={nameError} />
+        <FieldError id={`${nameId}-error`} message={nameError} />
       </div>
       <div className="fields-split">
         <div className="field">
-          <label htmlFor="item-price">Price</label>
+          <label htmlFor={priceId}>Price</label>
           <input
-            id="item-price"
+            id={priceId}
             className={`input${priceError ? " input-invalid" : ""}`}
             inputMode="decimal"
             value={price}
             aria-invalid={Boolean(priceError)}
-            aria-describedby={priceError ? "item-price-error" : undefined}
+            aria-describedby={priceError ? `${priceId}-error` : undefined}
             onChange={(e) => {
               setPrice(e.target.value);
               setPriceError("");
             }}
             placeholder={currency.decimalPlaces === 0 ? "50000" : "12.50"}
           />
-          <FieldError id="item-price-error" message={priceError} />
+          <FieldError id={`${priceId}-error`} message={priceError} />
         </div>
         <div className="field">
-          <label htmlFor="item-qty">Quantity</label>
+          <label htmlFor={qtyId}>Quantity</label>
           <input
-            id="item-qty"
+            id={qtyId}
             className={`input${quantityError ? " input-invalid" : ""}`}
             type="number"
             min={1}
             step={1}
             value={quantity}
             aria-invalid={Boolean(quantityError)}
-            aria-describedby={quantityError ? "item-qty-error" : undefined}
+            aria-describedby={quantityError ? `${qtyId}-error` : undefined}
             onChange={(e) => {
               setQuantity(e.target.value);
               setQuantityError("");
             }}
           />
-          <FieldError id="item-qty-error" message={quantityError} />
+          <FieldError id={`${qtyId}-error`} message={quantityError} />
         </div>
       </div>
       <div className="field">
-        <label htmlFor="item-notes">Notes (optional)</label>
+        <label htmlFor={notesId}>Notes (optional)</label>
         <textarea
-          id="item-notes"
+          id={notesId}
           className="input"
           rows={2}
           value={notes}
@@ -151,9 +160,18 @@ export function ItemForm({
           Multiple items — entered price is the line total
         </label>
       ) : null}
-      <Button type="submit" className="btn-block">
-        {submitLabel}
-      </Button>
+      {onCancel ? (
+        <div className="actions">
+          <Button type="submit">{submitLabel}</Button>
+          <Button type="button" className="btn-secondary" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
+      ) : (
+        <Button type="submit" className="btn-block">
+          {submitLabel}
+        </Button>
+      )}
     </form>
   );
 }

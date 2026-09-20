@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Layout, Button } from "../components/Layout";
+import { Layout, Button, ConfirmDialog } from "../components/Layout";
 import { ItemForm } from "../components/ItemForm";
 import { ItemList } from "../components/ItemList";
 import type { DraftItem } from "../components/ItemList";
@@ -12,7 +12,9 @@ import { Loading } from "../components/Loading";
 import { api } from "../services/api";
 import { getErrorMessage, useAuth } from "../hooks/useAuth";
 import { billSubtotal } from "../utils/calculations";
-import type { BillCharges, Currency } from "../types";
+import { parseMoneyInput } from "../utils/currency";
+import { fileToScanDataUrl } from "../utils/image";
+import type { BillCharges, Currency, ScannedBill } from "../types";
 
 const emptyCharges: BillCharges = {
   discount: 0,
@@ -24,6 +26,8 @@ const emptyCharges: BillCharges = {
 
 const GUEST_DRAFT_KEY = "easysplitbill:guest-draft";
 const SAVE_SHARE_MESSAGE = "Create an account or login to save or share your bill.";
+const SCAN_LOGIN_MESSAGE = "Create an account or login to scan a bill.";
+const SCAN_COOLDOWN_MS = 10000;
 
 interface GuestDraft {
   title: string;
@@ -117,7 +121,6 @@ export function BillEditorPage() {
   const [currencyId, setCurrencyId] = useState<number | null>(null);
   const [items, setItems] = useState<DraftItem[]>([]);
   const [charges, setCharges] = useState<BillCharges>(emptyCharges);
-  const [editing, setEditing] = useState<DraftItem | null>(null);
   const [shareToken, setShareToken] = useState<string | null>(null);
   const [savedId, setSavedId] = useState<number | null>(billId ? Number(billId) : null);
   const [loading, setLoading] = useState(true);
@@ -127,6 +130,12 @@ export function BillEditorPage() {
   const [titleError, setTitleError] = useState("");
   const [restaurantError, setRestaurantError] = useState("");
   const [loadFailed, setLoadFailed] = useState(false);
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState("");
+  const [scanCooldown, setScanCooldown] = useState(false);
+  const [pendingScan, setPendingScan] = useState<ScannedBill | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const cooldownTimer = useRef<number | null>(null);
   const draftReady = useRef(false);
   const { notify } = useToast();
 
@@ -211,6 +220,12 @@ export function BillEditorPage() {
   }, [billId]);
 
   useEffect(() => {
+    return () => {
+      if (cooldownTimer.current) window.clearTimeout(cooldownTimer.current);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isNew || user || loading || !draftReady.current) return;
     writeGuestDraft({
       title,
@@ -248,17 +263,105 @@ export function BillEditorPage() {
     notify("info", SAVE_SHARE_MESSAGE);
   }
 
+  function startCooldown() {
+    setScanCooldown(true);
+    if (cooldownTimer.current) window.clearTimeout(cooldownTimer.current);
+    cooldownTimer.current = window.setTimeout(() => {
+      setScanCooldown(false);
+      cooldownTimer.current = null;
+    }, SCAN_COOLDOWN_MS);
+  }
+
+  function applyScan(scan: ScannedBill) {
+    const code = scan.currencyCode?.trim().toUpperCase();
+    const match = code ? currencies.find((entry) => entry.code === code) : undefined;
+    const nextCurrency = match || currency;
+    if (!nextCurrency) return;
+    if (match) setCurrencyId(match.id);
+
+    if (scan.restaurantName) {
+      setRestaurantName(scan.restaurantName);
+      setRestaurantError("");
+      setTitle((current) => (current.trim() ? current : scan.restaurantName || current));
+      setTitleError("");
+    }
+
+    const nextItems: DraftItem[] = [];
+    for (const item of scan.items) {
+      const price = parseMoneyInput(String(item.unitPrice), nextCurrency.decimalPlaces);
+      if (price === null) continue;
+      nextItems.push({
+        key: newKey(),
+        name: item.name,
+        price,
+        quantity: item.quantity,
+        notes: typeof item.notes === "string" && item.notes.trim() ? item.notes.trim() : null,
+      });
+    }
+    if (nextItems.length === 0) {
+      setScanError("No items could be read from this bill. Please try a clearer photo.");
+      return;
+    }
+    setItems(nextItems);
+
+    const tax =
+      parseMoneyInput(String(scan.tax ?? 0), nextCurrency.decimalPlaces, { allowZero: true }) ?? 0;
+    const service =
+      parseMoneyInput(String(scan.service ?? 0), nextCurrency.decimalPlaces, { allowZero: true }) ?? 0;
+    const discount =
+      parseMoneyInput(String(scan.discount ?? 0), nextCurrency.decimalPlaces, { allowZero: true }) ?? 0;
+    setCharges({
+      ...emptyCharges,
+      tax,
+      service,
+      discount,
+      discountType: discount > 0 ? "FIXED" : "PERCENTAGE",
+    });
+    setScanError("");
+    notify("success", "Bill scanned. Review the items before saving.");
+  }
+
+  function startScan() {
+    if (!user) {
+      persistGuestDraft();
+      notify("info", SCAN_LOGIN_MESSAGE);
+      return;
+    }
+    if (scanning || scanCooldown) return;
+    fileInputRef.current?.click();
+  }
+
+  async function handleScanFile(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setScanning(true);
+    setScanError("");
+    try {
+      const image = await fileToScanDataUrl(file);
+      const res = await api.scanBill(image);
+      if (items.length > 0) {
+        setPendingScan(res.data.scan);
+      } else {
+        applyScan(res.data.scan);
+      }
+    } catch (err) {
+      setScanError(getErrorMessage(err, "Could not scan this bill."));
+    } finally {
+      setScanning(false);
+      startCooldown();
+    }
+  }
+
   function addItem(item: Omit<DraftItem, "key" | "id">) {
     setItems((current) => [...current, { ...item, key: newKey() }]);
     setError("");
   }
 
-  function saveEditedItem(item: Omit<DraftItem, "key" | "id">) {
-    if (!editing) return;
+  function saveEditedItem(item: DraftItem, values: Omit<DraftItem, "key" | "id">) {
     setItems((current) =>
-      current.map((row) => (row.key === editing.key ? { ...row, ...item } : row))
+      current.map((row) => (row.key === item.key ? { ...row, ...values } : row))
     );
-    setEditing(null);
   }
 
   async function save() {
@@ -370,7 +473,25 @@ export function BillEditorPage() {
 
   return (
     <Layout>
-      <h1 className="page-title">{isNew && !savedId ? "New bill" : "Edit bill"}</h1>
+      <div className="bill-section-header">
+        <h1 className="page-title bill-section-title">{isNew && !savedId ? "New bill" : "Edit bill"}</h1>
+        <Button
+          loading={scanning}
+          loadingLabel="Scanning bill..."
+          disabled={scanCooldown}
+          onClick={startScan}
+        >
+          {scanCooldown && !scanning ? "Scan bill (wait...)" : "Scan bill"}
+        </Button>
+      </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        hidden
+        onChange={(event) => void handleScanFile(event)}
+      />
+      <AlertMessage type="error" message={scanError} />
 
       <section className="card">
         <h2>Bill information</h2>
@@ -428,23 +549,8 @@ export function BillEditorPage() {
       </section>
 
       <section className="card">
-        <h2>{editing ? "Edit item" : "Add item"}</h2>
-        {editing ? (
-          <>
-            <ItemForm
-              key={editing.key}
-              currency={currency}
-              initial={editing}
-              submitLabel="Save item"
-              onSubmit={saveEditedItem}
-            />
-            <Button className="btn-secondary btn-block" onClick={() => setEditing(null)}>
-              Cancel
-            </Button>
-          </>
-        ) : (
-          <ItemForm currency={currency} onSubmit={addItem} />
-        )}
+        <h2>Add item</h2>
+        <ItemForm currency={currency} onSubmit={addItem} />
       </section>
 
       <section className="card">
@@ -453,7 +559,7 @@ export function BillEditorPage() {
           items={items}
           currency={currency}
           editable
-          onEdit={setEditing}
+          onSave={saveEditedItem}
           onDelete={(item) => setItems((current) => current.filter((row) => row.key !== item.key))}
         />
       </section>
@@ -510,6 +616,19 @@ export function BillEditorPage() {
             <ShareBillPanel billId={savedId} shareToken={shareToken} />
           </section>
         </>
+      ) : null}
+
+      {pendingScan ? (
+        <ConfirmDialog
+          title="Replace current items?"
+          message="Scanning this bill will replace the items and charges you already entered."
+          confirmLabel="Replace"
+          onCancel={() => setPendingScan(null)}
+          onConfirm={() => {
+            applyScan(pendingScan);
+            setPendingScan(null);
+          }}
+        />
       ) : null}
     </Layout>
   );

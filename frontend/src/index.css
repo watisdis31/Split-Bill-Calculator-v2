@@ -223,6 +223,15 @@ h4 {
   font-size: 0.95rem;
 }
 
+.howto-list {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.howto-list li + li {
+  margin-top: 0.55rem;
+}
+
 .stack {
   display: flex;
   flex-direction: column;
@@ -838,6 +847,10 @@ textarea.input-invalid:focus-visible {
   font-size: 0.9rem;
 }
 
+.item .stack {
+  gap: 0.65rem;
+}
+
 .total-line {
   display: flex;
   justify-content: space-between;
@@ -1381,7 +1394,8 @@ textarea.input-invalid:focus-visible {
   }
 
   .fields-split-stack,
-  .fields-split-wide {
+  .fields-split-wide,
+  .item .fields-split {
     grid-template-columns: 1fr;
   }
 
