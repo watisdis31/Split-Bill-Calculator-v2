@@ -107,7 +107,7 @@ export function ChargesForm({
     );
     setServiceInput(minorToEditableInput(charges.service, currency.decimalPlaces));
     setTaxInput(minorToEditableInput(charges.tax, currency.decimalPlaces));
-  }, [currency.id, charges.discountType]);
+  }, [currency.id, charges.discountType, charges.discount, charges.service, charges.tax]);
 
   return (
     <div className="stack">

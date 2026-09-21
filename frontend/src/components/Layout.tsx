@@ -1,4 +1,4 @@
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
@@ -44,6 +44,7 @@ export function Layout({
 }) {
   const { user, logout, loading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const headerRef = useRef<HTMLElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -83,13 +84,17 @@ export function Layout({
 
   async function handleLogout() {
     setMenuOpen(false);
-    await logout();
+    try {
+      await logout();
+    } finally {
+      navigate("/login", { replace: true });
+    }
   }
 
   return (
     <div className="shell">
       <header className="header" ref={headerRef}>
-        <Link to="/dashboard" className="brand">
+        <Link to="/" className="brand">
           EzSplitBill
         </Link>
         <div className="header-end">
@@ -104,7 +109,7 @@ export function Layout({
                 <NavLink to="/dashboard" className="btn btn-secondary">
                   Bills
                 </NavLink>
-                <button type="button" className="btn btn-secondary" onClick={() => void logout()}>
+                <button type="button" className="btn btn-secondary" onClick={() => void handleLogout()}>
                   Logout
                 </button>
               </>

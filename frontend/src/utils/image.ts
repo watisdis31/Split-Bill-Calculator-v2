@@ -2,7 +2,7 @@ const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_EDGE = 1600;
 const CLAHE_GRID_SIZE = 8;
 const CLAHE_BINS = 256;
-const CLAHE_CLIP_FACTOR = 2;
+const CLAHE_CLIP_FACTOR = 1.5;
 const BACKGROUND_RADIUS = 15;
 
 function clamp(value: number): number {
@@ -45,7 +45,8 @@ function subtractBackground(luminance: Uint8Array, width: number, height: number
           integral[(bottom + 1) * stride + left] +
           integral[top * stride + left]) /
         area;
-      corrected[y * width + x] = clamp(luminance[y * width + x] + (255 - background));
+      const pixel = luminance[y * width + x];
+      corrected[y * width + x] = clamp(pixel + (255 - background) * 0.5);
     }
   }
   return corrected;
@@ -153,11 +154,13 @@ export function fileToScanDataUrl(file: File): Promise<string> {
           reject(new Error("Could not process this image."));
           return;
         }
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = "high";
         context.drawImage(image, 0, 0, width, height);
         const imageData = context.getImageData(0, 0, width, height);
         enhanceReceipt(imageData, width, height);
         context.putImageData(imageData, 0, 0);
-        resolve(canvas.toDataURL("image/jpeg", 0.85));
+        resolve(canvas.toDataURL("image/jpeg", 0.95));
       } catch {
         reject(new Error("Could not process this image."));
       } finally {
