@@ -135,6 +135,8 @@ export function BillEditorPage() {
   const [scanCooldown, setScanCooldown] = useState(false);
   const [pendingScan, setPendingScan] = useState<ScannedBill | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
+  const restaurantInputRef = useRef<HTMLInputElement | null>(null);
   const cooldownTimer = useRef<number | null>(null);
   const draftReady = useRef(false);
   const { notify } = useToast();
@@ -376,7 +378,14 @@ export function BillEditorPage() {
     }
     setTitleError(nextTitleError);
     setRestaurantError(nextRestaurantError);
-    if (nextTitleError || nextRestaurantError) return;
+    if (nextTitleError || nextRestaurantError) {
+      const firstInvalidInput = nextTitleError
+        ? titleInputRef.current
+        : restaurantInputRef.current;
+      firstInvalidInput?.scrollIntoView({ behavior: "smooth", block: "center" });
+      firstInvalidInput?.focus({ preventScroll: true });
+      return;
+    }
     if (!user) {
       requireAccount();
       return;
@@ -424,7 +433,7 @@ export function BillEditorPage() {
         setShareToken(res.data.bill.shareToken || null);
         notify("success", "Bill created successfully.");
         clearGuestDraft();
-        navigate(`/bills/${res.data.bill.id}/edit`, { replace: true });
+        navigate(`/bills/${res.data.bill.id}`, { replace: true });
       }
     } catch (err) {
       setError(getErrorMessage(err, "Could not save bill."));
@@ -497,6 +506,7 @@ export function BillEditorPage() {
           <div className="field">
             <label htmlFor="title">Bill title</label>
             <input
+              ref={titleInputRef}
               id="title"
               className={`input${titleError ? " input-invalid" : ""}`}
               value={title}
@@ -514,6 +524,7 @@ export function BillEditorPage() {
             <div className="field">
               <label htmlFor="restaurant-name">Restaurant name (optional)</label>
               <input
+                ref={restaurantInputRef}
                 id="restaurant-name"
                 className={`input${restaurantError ? " input-invalid" : ""}`}
                 value={restaurantName}
