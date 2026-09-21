@@ -25,6 +25,26 @@ function notifySessionExpired(path: string, status: number) {
 
 export { SESSION_EXPIRED_EVENT };
 
+const SCAN_RETRY_COUNT = 2;
+const SCAN_RETRY_BASE_DELAY_MS = 500;
+
+function wait(milliseconds: number) {
+  return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+async function retryScanOn503<T>(operation: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (!(error instanceof ApiError) || error.status !== 503 || attempt >= SCAN_RETRY_COUNT) {
+        throw error;
+      }
+      await wait(SCAN_RETRY_BASE_DELAY_MS * 2 ** attempt);
+    }
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<ApiSuccess<T>> {
   let response: Response;
   try {
@@ -211,9 +231,11 @@ export const api = {
     });
   },
   scanBill(image: string) {
-    return request<{ scan: ScannedBill }>("/api/bills/scan", {
-      method: "POST",
-      body: JSON.stringify({ image }),
-    });
+    return retryScanOn503(() =>
+      request<{ scan: ScannedBill }>("/api/bills/scan", {
+        method: "POST",
+        body: JSON.stringify({ image }),
+      })
+    );
   },
 };

@@ -95,6 +95,10 @@ export function useAuth() {
 }
 
 export function getErrorMessage(error: unknown, fallback = "Something went wrong.") {
+  if (error instanceof ApiError && error.status === 503) {
+    return "Please try again in a few seconds";
+  }
+
   let message = fallback;
   if (error instanceof ApiError) message = error.message || fallback;
   else if (error instanceof Error) message = error.message || fallback;

@@ -1,6 +1,6 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type } from '@google/genai';
 
-const MODEL = "gemini-3.1-flash-lite";
+const MODEL = 'gemini-3.1-flash-lite';
 //later after implementing image pre processing for size and boosted contrast, try gemini-3.1-flash-lite instead
 const MAX_ITEMS = 100;
 
@@ -20,7 +20,7 @@ const BILL_SCHEMA = {
           lineTotal: { type: Type.NUMBER, nullable: true },
           notes: { type: Type.STRING, nullable: true },
         },
-        required: ["name", "quantity", "unitPrice"],
+        required: ['name', 'quantity', 'unitPrice'],
       },
     },
     subtotal: { type: Type.NUMBER, nullable: true },
@@ -29,7 +29,7 @@ const BILL_SCHEMA = {
     discount: { type: Type.NUMBER, nullable: true },
     grandTotal: { type: Type.NUMBER, nullable: true },
   },
-  required: ["items"],
+  required: ['items'],
 };
 
 const PROMPT = `Analyze this restaurant bill / receipt image carefully and extract structured data.
@@ -54,11 +54,11 @@ Rules:
 let client = null;
 
 export function isGeminiConfigured() {
-  return Boolean((process.env.GEMINI_API_KEY || "").trim());
+  return Boolean((process.env.GEMINI_API_KEY || '').trim());
 }
 
 function getClient() {
-  const apiKey = (process.env.GEMINI_API_KEY || "").trim();
+  const apiKey = (process.env.GEMINI_API_KEY || '').trim();
   if (!client) {
     client = new GoogleGenAI({ apiKey });
   }
@@ -66,8 +66,8 @@ function getClient() {
 }
 
 function toNumber(value) {
-  if (value === null || value === undefined || value === "") return null;
-  const n = typeof value === "number" ? value : Number(value);
+  if (value === null || value === undefined || value === '') return null;
+  const n = typeof value === 'number' ? value : Number(value);
   if (!Number.isFinite(n)) return null;
   return n;
 }
@@ -77,16 +77,17 @@ function normalizeScan(raw) {
   const items = [];
   for (const item of source) {
     if (items.length >= MAX_ITEMS) break;
-    const name = typeof item?.name === "string" ? item.name.trim().slice(0, 200) : "";
+    const name =
+      typeof item?.name === 'string' ? item.name.trim().slice(0, 200) : '';
     if (!name) continue;
     const unitPrice = toNumber(item.unitPrice);
     if (unitPrice === null || unitPrice <= 0) continue;
     let quantity = Math.round(Number(item.quantity));
     if (!Number.isFinite(quantity) || quantity < 1) quantity = 1;
     const notes =
-      typeof item?.notes === "string" && item.notes.trim()
-        ? item.notes.trim().slice(0, 500)
-        : null;
+      typeof item?.notes === 'string' && item.notes.trim() ?
+        item.notes.trim().slice(0, 500)
+      : null;
     items.push({
       name,
       quantity,
@@ -97,13 +98,13 @@ function normalizeScan(raw) {
   }
 
   const restaurantName =
-    typeof raw?.restaurantName === "string" && raw.restaurantName.trim()
-      ? raw.restaurantName.trim().slice(0, 255)
-      : null;
+    typeof raw?.restaurantName === 'string' && raw.restaurantName.trim() ?
+      raw.restaurantName.trim().slice(0, 255)
+    : null;
   const currencyCode =
-    typeof raw?.currencyCode === "string" && raw.currencyCode.trim()
-      ? raw.currencyCode.trim().toUpperCase().slice(0, 8)
-      : null;
+    typeof raw?.currencyCode === 'string' && raw.currencyCode.trim() ?
+      raw.currencyCode.trim().toUpperCase().slice(0, 8)
+    : null;
 
   return {
     restaurantName,
@@ -118,20 +119,24 @@ function normalizeScan(raw) {
 }
 
 function classifyGeminiError(error) {
-  const status = error?.status ?? error?.code ?? error?.error?.code ?? error?.error?.status;
-  const message = String(error?.message || error || "");
+  const status =
+    error?.status ?? error?.code ?? error?.error?.code ?? error?.error?.status;
+  const message = String(error?.message || error || '');
   const combined = `${status} ${message}`.toUpperCase();
-  if (status === 429 || combined.includes("RESOURCE_EXHAUSTED")) {
-    throw new Error("QUOTA");
+  if (status === 503 || combined.includes('UNAVAILABLE')) {
+    throw new Error('TEMPORARY_UNAVAILABLE');
+  }
+  if (status === 429 || combined.includes('RESOURCE_EXHAUSTED')) {
+    throw new Error('QUOTA');
   }
   if (
     status === 401 ||
     status === 403 ||
-    combined.includes("API_KEY_INVALID") ||
-    combined.includes("INVALID_API_KEY") ||
-    combined.includes("PERMISSION_DENIED")
+    combined.includes('API_KEY_INVALID') ||
+    combined.includes('INVALID_API_KEY') ||
+    combined.includes('PERMISSION_DENIED')
   ) {
-    throw new Error("BAD_KEY");
+    throw new Error('BAD_KEY');
   }
 }
 
@@ -143,12 +148,12 @@ export async function scanBillImage({ mimeType, data }) {
       model: MODEL,
       contents: [
         {
-          role: "user",
+          role: 'user',
           parts: [{ text: PROMPT }, { inlineData: { mimeType, data } }],
         },
       ],
       config: {
-        responseMimeType: "application/json",
+        responseMimeType: 'application/json',
         responseSchema: BILL_SCHEMA,
         temperature: 0,
         maxOutputTokens: 2048,
@@ -164,10 +169,10 @@ export async function scanBillImage({ mimeType, data }) {
   try {
     parsed = JSON.parse(response.text);
   } catch {
-    throw new Error("UNREADABLE");
+    throw new Error('UNREADABLE');
   }
-  if (!parsed || typeof parsed !== "object") {
-    throw new Error("UNREADABLE");
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('UNREADABLE');
   }
 
   return normalizeScan(parsed);
