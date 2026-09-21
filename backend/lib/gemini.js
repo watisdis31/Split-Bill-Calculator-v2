@@ -1,6 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const MODEL = "gemini-3.6-flash";
+const MODEL = "gemini-3.1-flash-lite";
+//later after implementing image pre processing for size and boosted contrast, try gemini-3.1-flash-lite instead
 const MAX_ITEMS = 100;
 
 const BILL_SCHEMA = {
