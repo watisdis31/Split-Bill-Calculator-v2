@@ -282,8 +282,6 @@ export function BillEditorPage() {
     if (scan.restaurantName) {
       setRestaurantName(scan.restaurantName);
       setRestaurantError("");
-      setTitle((current) => (current.trim() ? current : scan.restaurantName || current));
-      setTitleError("");
     }
 
     const nextItems: DraftItem[] = [];
