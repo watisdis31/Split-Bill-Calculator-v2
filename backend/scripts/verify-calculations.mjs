@@ -14,7 +14,8 @@ function billSubtotal(items) {
 function getDiscountBase(subtotal, charges) {
   const items = Number(subtotal) || 0;
   if (charges.discountTiming === "AFTER_CHARGES") {
-    return items + (Number(charges.tax) || 0) + (Number(charges.service) || 0);
+    const tax = charges.taxIncluded === true ? 0 : Number(charges.tax) || 0;
+    return items + tax + (Number(charges.service) || 0);
   }
   return items;
 }
@@ -34,10 +35,11 @@ function calculateBillTotals(items, charges) {
   const discountAmount = getDiscountAmount(subtotal, charges);
   const service = Number(charges.service) || 0;
   const tax = Number(charges.tax) || 0;
+  const taxToAdd = charges.taxIncluded === true ? 0 : tax;
   const total =
     charges.discountTiming === "AFTER_CHARGES"
-      ? Math.max(subtotal + service + tax - discountAmount, 0)
-      : Math.max(subtotal - discountAmount, 0) + service + tax;
+      ? Math.max(subtotal + service + taxToAdd - discountAmount, 0)
+      : Math.max(subtotal - discountAmount, 0) + service + taxToAdd;
   return { subtotal, discountAmount, service, tax, total };
 }
 
@@ -73,7 +75,8 @@ function calculatePersonalShare(items, charges, selections) {
     personalDiscount,
     personalService,
     personalTax,
-    finalAmount: yours - personalDiscount + personalService + personalTax,
+    finalAmount:
+      yours - personalDiscount + personalService + (charges.taxIncluded === true ? 0 : personalTax),
     discountAmount,
   };
 }
@@ -240,6 +243,44 @@ const emptyBefore = calculateBillTotals([], {
 });
 assertEqual(emptyBefore.discountAmount, 0, "fixed before with no items");
 assertEqual(emptyBefore.total, 30000, "fixed before with no items total");
+
+const taxIncludedFalse = calculateBillTotals(percentItems, {
+  ...percentBase,
+  discountTiming: "BEFORE_CHARGES",
+  taxIncluded: false,
+});
+assertEqual(taxIncludedFalse.total, percentBefore.total, "taxIncluded false matches exclusive");
+assertEqual(taxIncludedFalse.tax, 20000, "taxIncluded false still reports tax");
+
+const taxIncludedBefore = calculateBillTotals(percentItems, {
+  ...percentBase,
+  discountTiming: "BEFORE_CHARGES",
+  taxIncluded: true,
+});
+assertEqual(taxIncludedBefore.discountAmount, 20000, "taxIncluded before discount");
+assertEqual(taxIncludedBefore.tax, 20000, "taxIncluded before still reports tax");
+assertEqual(taxIncludedBefore.total, 190000, "taxIncluded before total");
+
+const taxIncludedAfter = calculateBillTotals(percentItems, {
+  ...percentBase,
+  discountTiming: "AFTER_CHARGES",
+  taxIncluded: true,
+});
+assertEqual(taxIncludedAfter.discountAmount, 21000, "taxIncluded after discount excludes tax from base");
+assertEqual(taxIncludedAfter.tax, 20000, "taxIncluded after still reports tax");
+assertEqual(taxIncludedAfter.total, 189000, "taxIncluded after total");
+
+const personalExclusive = calculatePersonalShare(regressionItems, regressionCharges, { 1: 1, 2: 2 });
+assertEqual(personalExclusive.finalAmount, 124594, "personal exclusive final");
+
+const personalIncluded = calculatePersonalShare(
+  regressionItems,
+  { ...regressionCharges, taxIncluded: true },
+  { 1: 1, 2: 2 }
+);
+assertEqual(personalIncluded.personalTax, 29531, "personal included tax share still reported");
+assertEqual(personalIncluded.finalAmount, 95063, "personal included final excludes tax");
+assertEqual(personalExclusive.finalAmount, personal.finalAmount, "false flag leaves personal final unchanged");
 
 if (Math.round((50000 / 200000) * 10000) / 100 !== 25) {
   throw new Error("percentage display");

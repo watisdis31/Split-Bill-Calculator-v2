@@ -7,9 +7,10 @@
  *
  * Discount timing:
  * - BEFORE_CHARGES: discount is based on item subtotal
- * - AFTER_CHARGES: discount is based on subtotal + tax + service
+ * - AFTER_CHARGES: discount is based on subtotal + service + tax (tax omitted when taxIncluded)
  *
  * Tax and service are fixed amounts, not recalculated from a discounted subtotal.
+ * When taxIncluded is true, printed tax is still reported but not added to the total.
  */
 
 export function itemTotal(item) {
@@ -23,7 +24,8 @@ export function billSubtotal(items) {
 export function getDiscountBase(subtotal, charges) {
   const items = Number(subtotal) || 0;
   if (charges.discountTiming === "AFTER_CHARGES") {
-    return items + (Number(charges.tax) || 0) + (Number(charges.service) || 0);
+    const tax = charges.taxIncluded === true ? 0 : Number(charges.tax) || 0;
+    return items + tax + (Number(charges.service) || 0);
   }
   return items;
 }
@@ -46,12 +48,13 @@ export function calculateBillTotals(items, charges) {
   const discountAmount = getDiscountAmount(subtotal, charges);
   const service = Number(charges.service) || 0;
   const tax = Number(charges.tax) || 0;
+  const taxToAdd = charges.taxIncluded === true ? 0 : tax;
 
   let total;
   if (charges.discountTiming === "AFTER_CHARGES") {
-    total = Math.max(subtotal + service + tax - discountAmount, 0);
+    total = Math.max(subtotal + service + taxToAdd - discountAmount, 0);
   } else {
-    total = Math.max(subtotal - discountAmount, 0) + service + tax;
+    total = Math.max(subtotal - discountAmount, 0) + service + taxToAdd;
   }
 
   return {
@@ -98,7 +101,8 @@ export function calculatePersonalShare(items, charges, selections) {
   const personalDiscount = roundShare(discountAmount, yours, billTotalItems);
   const personalService = roundShare(service, yours, billTotalItems);
   const personalTax = roundShare(tax, yours, billTotalItems);
-  const finalAmount = yours - personalDiscount + personalService + personalTax;
+  const taxToAdd = charges.taxIncluded === true ? 0 : personalTax;
+  const finalAmount = yours - personalDiscount + personalService + taxToAdd;
 
   return {
     billSubtotal: billTotalItems,

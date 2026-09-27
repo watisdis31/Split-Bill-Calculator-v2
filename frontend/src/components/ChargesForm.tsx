@@ -132,6 +132,14 @@ export function ChargesForm({
               {formatChargePercentageIndicator(taxPercentage)}
             </span>
           </div>
+          <label className="checkbox" style={{ marginTop: "0.45rem" }}>
+            <input
+              type="checkbox"
+              checked={charges.taxIncluded === true}
+              onChange={(e) => onChange({ ...charges, taxIncluded: e.target.checked })}
+            />
+            Tax already included in item prices
+          </label>
         </div>
         <div className="field">
           <label htmlFor="service">Service charge</label>

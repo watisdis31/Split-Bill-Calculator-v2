@@ -61,15 +61,27 @@ export function ItemList({
           ) : (
             <>
               <div className="row-spread">
-                <div>
+                <div className="item-copy">
                   <div className="item-name">{item.name}</div>
                   <div className="item-meta">
                     {formatMoney(item.price, currency)} × {item.quantity}
                   </div>
-                  {item.notes ? <div className="item-meta">{item.notes}</div> : null}
                 </div>
-                <strong>{formatMoney(itemTotal(item), currency)}</strong>
+                <strong className="item-total">{formatMoney(itemTotal(item), currency)}</strong>
               </div>
+              {item.notes ? (
+                <div className="item-notes">
+                  {item.notes
+                    .split(",")
+                    .map((note) => note.trim())
+                    .filter(Boolean)
+                    .map((note, index) => (
+                      <div className="item-note" key={`${item.key}-note-${index}`}>
+                        {note}
+                      </div>
+                    ))}
+                </div>
+              ) : null}
               {editable ? (
                 <div className="actions" style={{ marginTop: "0.5rem" }}>
                   <button type="button" className="btn btn-secondary" onClick={() => setEditingKey(item.key)}>

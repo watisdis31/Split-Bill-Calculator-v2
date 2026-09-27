@@ -40,7 +40,15 @@ export function BillSummary({
         <span>{formatMoney(totals.service, currency)}</span>
       </div>
       <div className="total-line">
-        <span>{taxLabel ? `Tax (${taxLabel})` : "Tax"}</span>
+        <span>
+          {charges.taxIncluded
+            ? taxLabel
+              ? `Tax (included, ${taxLabel})`
+              : "Tax (included)"
+            : taxLabel
+              ? `Tax (${taxLabel})`
+              : "Tax"}
+        </span>
         <span>{formatMoney(totals.tax, currency)}</span>
       </div>
       <div className="you-pay">
