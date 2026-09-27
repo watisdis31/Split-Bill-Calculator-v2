@@ -22,6 +22,7 @@ const emptyCharges: BillCharges = {
   discountTiming: "BEFORE_CHARGES",
   service: 0,
   tax: 0,
+  taxIncluded: false,
 };
 
 const GUEST_DRAFT_KEY = "easysplitbill:guest-draft";
@@ -72,7 +73,10 @@ function readGuestDraft(): GuestDraft | null {
       title: data.title,
       restaurantName: data.restaurantName,
       currencyId: data.currencyId,
-      charges: data.charges,
+      charges: {
+        ...data.charges,
+        taxIncluded: data.charges.taxIncluded === true,
+      },
       items: data.items
         .filter(
           (item) =>
@@ -171,7 +175,10 @@ export function BillEditorPage() {
           setTitle(bill.title);
           setRestaurantName(bill.restaurantName || "");
           setCurrencyId(bill.currency.id);
-          setCharges(bill.charges);
+          setCharges({
+            ...bill.charges,
+            taxIncluded: bill.charges.taxIncluded === true,
+          });
           setShareToken(bill.shareToken || null);
           setSavedId(bill.id);
           setItems(
@@ -316,9 +323,13 @@ export function BillEditorPage() {
       service,
       discount,
       discountType: discount > 0 ? "FIXED" : "PERCENTAGE",
+      taxIncluded: scan.taxIncluded === true,
     });
     setScanError("");
     notify("success", "Bill scanned. Review the items before saving.");
+    if (scan.totalsMatch === false) {
+      notify("info", "Scanned totals do not match the receipt's grand total. Please review item prices.");
+    }
   }
 
   function startScan() {
@@ -401,6 +412,7 @@ export function BillEditorPage() {
       discount: charges.discount,
       discountType: charges.discountType,
       discountTiming: charges.discountTiming,
+      taxIncluded: charges.taxIncluded === true,
       items: items.map((item) => ({
         id: item.id,
         name: item.name,

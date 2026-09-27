@@ -174,6 +174,19 @@ export function parseBillPayload(body, { partial = false } = {}) {
     result.discount = 0;
   }
 
+  if (!partial || body.taxIncluded !== undefined || body.billTaxIncluded !== undefined) {
+    const taxIncluded = body.taxIncluded ?? body.billTaxIncluded;
+    if (taxIncluded === undefined || taxIncluded === null || taxIncluded === "") {
+      result.taxIncluded = false;
+    } else if (typeof taxIncluded !== "boolean") {
+      errors.push("Tax included must be a boolean");
+    } else {
+      result.taxIncluded = taxIncluded;
+    }
+  } else if (!partial) {
+    result.taxIncluded = false;
+  }
+
   if (errors.length > 0) {
     return { error: errors[0], errors };
   }

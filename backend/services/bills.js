@@ -30,6 +30,7 @@ export function mapBill(row, items = [], { isOwner = false, includeShareToken = 
     discountTiming: row.billDiscountTiming,
     service: toInt(row.billService),
     tax: toInt(row.billTax),
+    taxIncluded: row.billTaxIncluded === true,
   };
   const mappedItems = items.map(mapItem);
   const totals = calculateBillTotals(mappedItems, charges);
@@ -76,7 +77,7 @@ export async function getBillRowById(billId, db = { query }) {
   const result = await db.query(
     `SELECT
        b."BillId", b."BillUserId", b."billTitle", b."billRestaurantName", b."billTax", b."billService",
-       b."billDiscount", b."billDiscountType", b."billDiscountTiming",
+       b."billDiscount", b."billDiscountType", b."billDiscountTiming", b."billTaxIncluded",
        b."billShareToken", b."BillCurrencyFKId", b."BillCreatedAt", b."BillUpdatedAt",
        c."CurrencyId", c."currencyCode", c."currencyName", c."currencySymbol", c."decimalPlaces"
      FROM "Bills" b
@@ -91,7 +92,7 @@ export async function getBillRowByShareToken(shareToken, db = { query }) {
   const result = await db.query(
     `SELECT
        b."BillId", b."BillUserId", b."billTitle", b."billRestaurantName", b."billTax", b."billService",
-       b."billDiscount", b."billDiscountType", b."billDiscountTiming",
+       b."billDiscount", b."billDiscountType", b."billDiscountTiming", b."billTaxIncluded",
        b."billShareToken", b."BillCurrencyFKId", b."BillCreatedAt", b."BillUpdatedAt",
        c."CurrencyId", c."currencyCode", c."currencyName", c."currencySymbol", c."decimalPlaces"
      FROM "Bills" b
@@ -213,7 +214,7 @@ export async function listAccessibleBills(
     db.query(
       `SELECT
          b."BillId", b."BillUserId", b."billTitle", b."billRestaurantName", b."billTax", b."billService",
-         b."billDiscount", b."billDiscountType", b."billDiscountTiming",
+         b."billDiscount", b."billDiscountType", b."billDiscountTiming", b."billTaxIncluded",
          b."billShareToken", b."BillCurrencyFKId", b."BillCreatedAt", b."BillUpdatedAt",
          c."CurrencyId", c."currencyCode", c."currencyName", c."currencySymbol", c."decimalPlaces",
          u."username" AS "ownerUsername",
@@ -238,6 +239,7 @@ export async function listAccessibleBills(
       discountTiming: row.billDiscountTiming,
       service: toInt(row.billService),
       tax: toInt(row.billTax),
+      taxIncluded: row.billTaxIncluded === true,
     };
     const subtotal = toInt(row.subtotal);
     const totals = calculateBillTotals([{ price: subtotal, quantity: 1 }], charges);
@@ -279,9 +281,9 @@ export async function insertBill(data, userId, db = { query }) {
   const result = await db.query(
     `INSERT INTO "Bills" (
        "BillUserId", "billTitle", "billRestaurantName", "billTax", "billService", "billDiscount",
-       "billDiscountType", "billDiscountTiming", "BillCurrencyFKId"
+       "billDiscountType", "billDiscountTiming", "billTaxIncluded", "BillCurrencyFKId"
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING "BillId"`,
     [
       userId,
@@ -292,6 +294,7 @@ export async function insertBill(data, userId, db = { query }) {
       data.discount,
       data.discountType,
       data.discountTiming,
+      data.taxIncluded === true,
       data.currencyId,
     ]
   );
@@ -311,6 +314,7 @@ export async function updateBill(billId, data, db = { query }) {
     discount: '"billDiscount"',
     discountType: '"billDiscountType"',
     discountTiming: '"billDiscountTiming"',
+    taxIncluded: '"billTaxIncluded"',
     currencyId: '"BillCurrencyFKId"',
     shareToken: '"billShareToken"',
   };
