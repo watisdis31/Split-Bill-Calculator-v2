@@ -79,7 +79,15 @@ export function PersonalCalculator({
             <span>{formatMoney(result.personalService, currency)}</span>
           </div>
           <div className="total-line">
-            <span>{taxLabel ? `Tax (${taxLabel})` : "Tax"}</span>
+            <span>
+              {charges.taxIncluded
+                ? taxLabel
+                  ? `Tax (included, ${taxLabel})`
+                  : "Tax (included)"
+                : taxLabel
+                  ? `Tax (${taxLabel})`
+                  : "Tax"}
+            </span>
             <span>{formatMoney(result.personalTax, currency)}</span>
           </div>
           <div className="you-pay">

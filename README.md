@@ -27,7 +27,7 @@ On Windows PowerShell, the same commands work if `psql` is on your PATH.
 
 If you see `SQL Error [25P02]: current transaction is aborted`, click **Rollback** (or disconnect/reconnect), then re-run the script with `Alt+X`.
 
-Later schema changes belong in additional numbered files under `database/LogDB/`, for example `002_add_bill_indexes.sql`. Do not hide schema changes in application code.
+Later schema changes belong in additional numbered files under `database/LogDB/`, for example `002_add_bill_indexes.sql`. Do not hide schema changes in application code. Existing databases also need `005_vincent_add_bill_tax_included.sql` (`Bills.billTaxIncluded`).
 
 ## Environment setup
 

@@ -842,9 +842,37 @@ textarea.input-invalid:focus-visible {
   font-weight: 800;
 }
 
+.item-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-total {
+  flex: none;
+  white-space: nowrap;
+}
+
+.item .row-spread {
+  padding-bottom: 0;
+}
+
 .item-meta {
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.item-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin-top: 0.2rem;
+}
+
+.item-note {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.35;
+  overflow-wrap: break-word;
 }
 
 .item .stack {

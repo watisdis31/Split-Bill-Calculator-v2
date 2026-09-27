@@ -31,6 +31,7 @@ export interface BillCharges {
   discountTiming: DiscountTiming;
   service: number;
   tax: number;
+  taxIncluded: boolean;
 }
 
 export interface BillTotals {
@@ -92,6 +93,8 @@ export interface ScannedBill {
   service: number | null;
   discount: number | null;
   grandTotal: number | null;
+  taxIncluded: boolean;
+  totalsMatch: boolean | null;
 }
 
 export interface ApiSuccess<T> {
