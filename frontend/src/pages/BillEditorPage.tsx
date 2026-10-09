@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Layout, Button, ConfirmDialog } from "../components/Layout";
+import { Layout, Button } from "../components/Layout";
 import { ItemForm } from "../components/ItemForm";
 import { ItemList } from "../components/ItemList";
 import type { DraftItem } from "../components/ItemList";
@@ -15,6 +15,7 @@ import { billSubtotal } from "../utils/calculations";
 import { parseMoneyInput } from "../utils/currency";
 import { fileToScanDataUrl } from "../utils/image";
 import type { BillCharges, Currency, ScannedBill } from "../types";
+import Swal, { type SweetAlertOptions } from "sweetalert2";
 
 const emptyCharges: BillCharges = {
   discount: 0,
@@ -29,6 +30,22 @@ const GUEST_DRAFT_KEY = "easysplitbill:guest-draft";
 const SAVE_SHARE_MESSAGE = "Create an account or login to save or share your bill.";
 const SCAN_LOGIN_MESSAGE = "Create an account or login to scan a bill.";
 const SCAN_COOLDOWN_MS = 10000;
+
+const scanAlertDefaults: SweetAlertOptions = {
+  position: "top",
+  buttonsStyling: false,
+  customClass: {
+    container: "scan-swal-container",
+    popup: "scan-swal-popup",
+    title: "scan-swal-title",
+    htmlContainer: "scan-swal-text",
+    icon: "scan-swal-icon",
+    loader: "scan-swal-loader",
+    confirmButton: "scan-swal-confirm",
+    cancelButton: "scan-swal-cancel",
+    timerProgressBar: "scan-swal-progress",
+  },
+};
 
 interface GuestDraft {
   title: string;
@@ -114,6 +131,10 @@ function clearGuestDraft() {
   }
 }
 
+function showScanAlert(options: SweetAlertOptions) {
+  return Swal.fire({ ...scanAlertDefaults, ...options } as SweetAlertOptions);
+}
+
 export function BillEditorPage() {
   const { billId } = useParams();
   const isNew = !billId;
@@ -137,7 +158,6 @@ export function BillEditorPage() {
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState("");
   const [scanCooldown, setScanCooldown] = useState(false);
-  const [pendingScan, setPendingScan] = useState<ScannedBill | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const titleInputRef = useRef<HTMLInputElement | null>(null);
   const restaurantInputRef = useRef<HTMLInputElement | null>(null);
@@ -285,7 +305,7 @@ export function BillEditorPage() {
     const code = scan.currencyCode?.trim().toUpperCase();
     const match = code ? currencies.find((entry) => entry.code === code) : undefined;
     const nextCurrency = match || currency;
-    if (!nextCurrency) return;
+    if (!nextCurrency) return false;
     if (match) setCurrencyId(match.id);
 
     if (scan.restaurantName) {
@@ -307,7 +327,7 @@ export function BillEditorPage() {
     }
     if (nextItems.length === 0) {
       setScanError("No items could be read from this bill. Please try a clearer photo.");
-      return;
+      return false;
     }
     setItems(nextItems);
 
@@ -326,10 +346,7 @@ export function BillEditorPage() {
       taxIncluded: scan.taxIncluded === true,
     });
     setScanError("");
-    notify("success", "Bill scanned. Review the items before saving.");
-    if (scan.totalsMatch === false) {
-      notify("info", "Scanned totals do not match the receipt's grand total. Please review item prices.");
-    }
+    return true;
   }
 
   function startScan() {
@@ -348,16 +365,66 @@ export function BillEditorPage() {
     if (!file) return;
     setScanning(true);
     setScanError("");
+    void showScanAlert({
+      title: "Scanning bill...",
+      text: "Please wait while we read the receipt.",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => Swal.showLoading(),
+    });
     try {
       const image = await fileToScanDataUrl(file);
-      const res = await api.scanBill(image);
+      const res = await api.scanBill(image, (retryNumber, totalRetries) => {
+        Swal.update({
+          ...scanAlertDefaults,
+          title: "Retrying scan...",
+          text: `The scan service is temporarily unavailable. Retry ${retryNumber} of ${totalRetries}...`,
+          showConfirmButton: false,
+        });
+        Swal.showLoading();
+      });
+      let scanSucceeded = false;
       if (items.length > 0) {
-        setPendingScan(res.data.scan);
+        const replaceResult = await showScanAlert({
+          icon: "warning",
+          title: "Replace current items?",
+          text: "Scanning this bill will replace the items and charges you already entered.",
+          showCancelButton: true,
+          confirmButtonText: "Replace",
+          cancelButtonText: "Cancel",
+          focusCancel: true,
+          reverseButtons: true,
+        });
+        if (!replaceResult.isConfirmed) return;
+        scanSucceeded = applyScan(res.data.scan);
       } else {
-        applyScan(res.data.scan);
+        scanSucceeded = applyScan(res.data.scan);
       }
+      if (!scanSucceeded) {
+        await showScanAlert({
+          icon: "error",
+          title: "Scan failed",
+          text: "No items could be read from this bill. Please try a clearer photo.",
+        });
+        return;
+      }
+      await showScanAlert({
+        icon: "success",
+        title: "Scan complete",
+        text:
+          items.length > 0
+            ? "Review the scanned items and confirm the replacement."
+            : "Review the scanned items before saving.",
+      });
     } catch (err) {
-      setScanError(getErrorMessage(err, "Could not scan this bill."));
+      const message = getErrorMessage(err, "Could not scan this bill.");
+      setScanError(message);
+      await showScanAlert({
+        icon: "error",
+        title: "Scan failed",
+        text: message,
+      });
     } finally {
       setScanning(false);
       startCooldown();
@@ -639,18 +706,6 @@ export function BillEditorPage() {
         </>
       ) : null}
 
-      {pendingScan ? (
-        <ConfirmDialog
-          title="Replace current items?"
-          message="Scanning this bill will replace the items and charges you already entered."
-          confirmLabel="Replace"
-          onCancel={() => setPendingScan(null)}
-          onConfirm={() => {
-            applyScan(pendingScan);
-            setPendingScan(null);
-          }}
-        />
-      ) : null}
     </Layout>
   );
 }
