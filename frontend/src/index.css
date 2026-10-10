@@ -630,6 +630,29 @@ textarea.input-invalid:focus-visible {
   box-shadow: 2px 2px 0 var(--btn-ink);
 }
 
+.btn-scan-cooldown::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  background: color-mix(in srgb, var(--btn-ink) 22%, transparent);
+  z-index: 0;
+  pointer-events: none;
+  transform-origin: right center;
+  animation: scan-cooldown-progress var(--scan-cooldown-ms, 10s) linear forwards;
+}
+
+@keyframes scan-cooldown-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
 .btn-secondary {
   --btn-face: #ffffff;
 }
