@@ -565,6 +565,12 @@ export function BillEditorPage() {
           loading={scanning}
           loadingLabel="Scanning bill..."
           disabled={scanCooldown}
+          className={scanCooldown && !scanning ? "btn-scan-cooldown" : ""}
+          style={
+            scanCooldown && !scanning
+              ? ({ "--scan-cooldown-ms": `${SCAN_COOLDOWN_MS}ms` } as React.CSSProperties)
+              : undefined
+          }
           onClick={startScan}
         >
           {scanCooldown && !scanning ? "Scan bill (wait...)" : "Scan bill"}
