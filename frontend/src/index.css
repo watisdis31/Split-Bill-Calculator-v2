@@ -824,6 +824,109 @@ textarea.input-invalid:focus-visible {
   pointer-events: auto;
 }
 
+.scan-swal-container {
+  align-items: flex-start;
+  padding: 0.75rem;
+}
+
+.scan-swal-popup {
+  width: min(40rem, calc(100% - 1.5rem));
+  padding: 1rem;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: var(--card);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.scan-swal-title {
+  margin: 0;
+  padding: 0;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.scan-swal-text {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.scan-swal-icon {
+  margin: 0.75rem auto 0.5rem;
+  border-width: 2px;
+}
+
+.scan-swal-icon.swal2-success {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.scan-swal-icon.swal2-error {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.scan-swal-icon.swal2-warning {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.scan-swal-loader {
+  border-color: var(--line) transparent var(--line) transparent;
+}
+
+.scan-swal-confirm {
+  margin-top: 0.85rem;
+  padding: 0.6rem 0.85rem;
+  border: 2px solid var(--btn-ink);
+  border-radius: 0;
+  background: var(--btn-fill);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--btn-ink);
+}
+
+.scan-swal-confirm:hover,
+.scan-swal-confirm:focus-visible {
+  background: var(--btn-face);
+  color: var(--btn-ink);
+  outline: none;
+}
+
+.scan-swal-cancel {
+  margin-top: 0.85rem;
+  margin-left: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  border: 2px solid var(--line);
+  border-radius: 0;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--line);
+}
+
+.scan-swal-cancel:hover,
+.scan-swal-cancel:focus-visible {
+  background: var(--btn-face);
+  outline: none;
+}
+
+.scan-swal-progress {
+  background: var(--line);
+}
+
 .dialog-copy {
   margin: 0;
 }

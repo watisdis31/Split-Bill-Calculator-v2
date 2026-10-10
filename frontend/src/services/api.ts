@@ -32,7 +32,10 @@ function wait(milliseconds: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
-async function retryScanOn503<T>(operation: () => Promise<T>): Promise<T> {
+async function retryScanOn503<T>(
+  operation: () => Promise<T>,
+  onRetry?: (retryNumber: number, totalRetries: number) => void
+): Promise<T> {
   for (let attempt = 0; ; attempt += 1) {
     try {
       return await operation();
@@ -40,6 +43,7 @@ async function retryScanOn503<T>(operation: () => Promise<T>): Promise<T> {
       if (!(error instanceof ApiError) || error.status !== 503 || attempt >= SCAN_RETRY_COUNT) {
         throw error;
       }
+      onRetry?.(attempt + 1, SCAN_RETRY_COUNT);
       await wait(SCAN_RETRY_BASE_DELAY_MS * 2 ** attempt);
     }
   }
@@ -230,12 +234,13 @@ export const api = {
       method: "DELETE",
     });
   },
-  scanBill(image: string) {
+  scanBill(image: string, onRetry?: (retryNumber: number, totalRetries: number) => void) {
     return retryScanOn503(() =>
       request<{ scan: ScannedBill }>("/api/bills/scan", {
         method: "POST",
         body: JSON.stringify({ image }),
-      })
+      }),
+      onRetry
     );
   },
 };
