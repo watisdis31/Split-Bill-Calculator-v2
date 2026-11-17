@@ -1293,6 +1293,52 @@ textarea.input-invalid:focus-visible {
   min-width: 0;
 }
 
+.bill-search {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 2.75rem;
+  border: 2px solid var(--line);
+  background: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.bill-search:focus-within {
+  background: var(--btn-face);
+  box-shadow: 2px 2px 0 var(--line);
+}
+
+.bill-search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 2.75rem;
+  color: var(--muted);
+}
+
+.bill-search-icon svg {
+  display: block;
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.bill-search .input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding-left: 0.35rem;
+}
+
+.bill-search .input:focus,
+.bill-search .input:focus-visible {
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+}
+
 .bill-filter-toggle {
   display: flex;
   align-items: center;
