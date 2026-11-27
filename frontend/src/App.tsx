@@ -4,6 +4,7 @@ import { AuthReady, GuestRoute, ProtectedRoute } from "./components/ProtectedRou
 import { Loading } from "./components/Loading";
 import { HomePage } from "./pages/HomePage";
 import { HowItWorksPage } from "./pages/HowItWorksPage";
+import { PrivacyPage } from "./pages/PrivacyPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
 const LoginPage = lazy(() =>
@@ -39,6 +40,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/how-it-works" element={<HowItWorksPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
         <Route
           path="/login"
           element={

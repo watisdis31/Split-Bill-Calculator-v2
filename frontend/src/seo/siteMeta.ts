@@ -24,6 +24,12 @@ export const PAGE_SEO: Record<string, PageSeo> = {
       "Create a bill from a receipt, share a link, and let everyone calculate their own share—no sign-in required for guests.",
     path: "/how-it-works",
   },
+  privacy: {
+    title: "Privacy | EzSplitBill",
+    description:
+      "How EzSplitBill handles your account, receipt scans, saved bills, and the single login cookie we use.",
+    path: "/privacy",
+  },
   login: {
     title: "Login — EzSplitBill",
     description: "Sign in to save bills, manage your dashboard, and share splits with friends.",
