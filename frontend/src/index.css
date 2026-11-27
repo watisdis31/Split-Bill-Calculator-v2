@@ -232,6 +232,69 @@ h4 {
   margin-top: 0.55rem;
 }
 
+.privacy-hero {
+  margin-bottom: 1rem;
+}
+
+.privacy-hero-title {
+  margin-bottom: 0.4rem;
+  font-size: clamp(1.5rem, 6vw, 1.95rem);
+  font-weight: 800;
+}
+
+.privacy-hero-lead {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.privacy-summary-card {
+  background: var(--btn-face);
+}
+
+.privacy-summary-card p {
+  margin: 0;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.privacy-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+.privacy-card-head h2 {
+  margin: 0;
+  flex: 1;
+}
+
+.privacy-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.35rem;
+  height: 2.35rem;
+  border: 2px solid var(--line);
+  background: var(--btn-face);
+  box-shadow: 2px 2px 0 var(--line);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.card p.muted strong {
+  color: var(--ink);
+  font-weight: 800;
+}
+
 .stack {
   display: flex;
   flex-direction: column;
