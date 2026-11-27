@@ -1,13 +1,14 @@
 # EzSplitBill
 
-> EzSplitBill is a free split-bill web app at https://ezsplitbill.vercel.app. Enter a receipt once, share a link, and let each person calculate their share. Guests can open shared bills without signing in.
+> EzSplitBill is a free split bill web app at https://ezsplitbill.vercel.app. Enter a receipt once, share a link, and let each person calculate their share. Guests can open shared bills without signing in.
 
 Signed-in users can save bills, scan receipt photos into line items, and manage bills from a dashboard. The app supports tax, service charges, discounts, and multi-currency totals.
 
 ## Key pages
 
 - [Home](https://ezsplitbill.vercel.app/): Overview and shortcuts to create or open bills.
-- [How it works](https://ezsplitbill.vercel.app/how-it-works): Step-by-step guide for creating and sharing bills.
+- [How it works](https://ezsplitbill.vercel.app/how-it-works): Step by step guide for creating and sharing bills.
+- [Privacy](https://ezsplitbill.vercel.app/privacy): How EzSplitBill handles accounts, receipt scans, saved bills, and cookies.
 - [Login](https://ezsplitbill.vercel.app/login): Sign in to save and manage bills.
 - [Register](https://ezsplitbill.vercel.app/register): Create a free account.
 

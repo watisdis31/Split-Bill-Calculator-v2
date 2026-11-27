@@ -12,9 +12,9 @@ export function HomePage() {
   return (
     <Layout guest>
       <PageMeta {...seo} />
-      <h1 className="page-title">EzSplitBill</h1>
+      <h1 className="page-title">Split a bill with friends</h1>
       <section className="card">
-        <p>Enter a receipt once. Share a link. Everyone calculates their own share.</p>
+        <p>EzSplitBill is a free split bill app. Enter a receipt or scan one, share a link, and everyone calculates their own share.</p>
         <div className="actions" style={{ marginTop: "1rem" }}>
           {!loading && user ? (
             <Link className="btn" to="/dashboard">
