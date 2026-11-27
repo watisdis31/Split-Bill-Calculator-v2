@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <style type="text/css"><![CDATA[
+      @font-face {
+        font-family: "Segoe UI";
+        font-style: normal;
+        font-weight: 400;
+        src: url("fonts/LiberationSans-Regular.ttf") format("truetype");
+      }
+      @font-face {
+        font-family: "Segoe UI";
+        font-style: normal;
+        font-weight: 700;
+        src: url("fonts/LiberationSans-Bold.ttf") format("truetype");
+      }
+      .ui {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        fill: #111111;
+      }
+    ]]></style>
+  </defs>
+  <rect width="1200" height="630" fill="#f4f1ea"/>
+  <g transform="translate(100 95)">
+    <rect x="4" y="4" width="996" height="440" fill="#111111"/>
+    <rect width="996" height="440" fill="#ffffff" stroke="#111111" stroke-width="4"/>
+    <g transform="translate(48 48)">
+      <g transform="translate(0 10.06) scale(0.1875)">
+        <path d="M38.0 36.0 H418.0 V378.0 L370.5 426.0 L323.0 378.0 L275.5 426.0 L228.0 378.0 L180.5 426.0 L133.0 378.0 L85.5 426.0 L38.0 378.0 Z" fill="#F4F1EA" stroke="#F4F1EA" stroke-width="52" stroke-linejoin="round"/><path d="M38.0 36.0 H418.0 V378.0 L370.5 426.0 L323.0 378.0 L275.5 426.0 L228.0 378.0 L180.5 426.0 L133.0 378.0 L85.5 426.0 L38.0 378.0 Z" transform="translate(48 48)" fill="#F4F1EA" stroke="#F4F1EA" stroke-width="52" stroke-linejoin="round"/><path d="M38.0 36.0 H418.0 V378.0 L370.5 426.0 L323.0 378.0 L275.5 426.0 L228.0 378.0 L180.5 426.0 L133.0 378.0 L85.5 426.0 L38.0 378.0 Z" transform="translate(48 48)" fill="#111111" stroke="#111111" stroke-width="24" stroke-linejoin="miter" stroke-miterlimit="10"/><path d="M38.0 36.0 H418.0 V378.0 L370.5 426.0 L323.0 378.0 L275.5 426.0 L228.0 378.0 L180.5 426.0 L133.0 378.0 L85.5 426.0 L38.0 378.0 Z" fill="#FFFCD5" stroke="#111111" stroke-width="24" stroke-linejoin="miter" stroke-miterlimit="10"/><path d="M90.0 290.0V106.0H135.4V290.0ZM130.3 290.0V251.7H208.0V290.0ZM130.3 215.6V177.3H202.7V215.6ZM130.3 144.3V106.0H206.5V144.3Z" fill="#111111"/><path d="M218.0 290.0V258.8L307.8 145.8L309.0 150.3L300.4 139.3L306.2 144.3H221.5V106.0H366.0V137.2L276.0 250.2L274.7 245.4L283.3 256.7L277.5 251.7H365.0V290.0Z" fill="#111111"/><circle cx="94" cy="326" r="8" fill="#111111"/><circle cx="130" cy="326" r="8" fill="#111111"/><circle cx="166" cy="326" r="8" fill="#111111"/><circle cx="202" cy="326" r="8" fill="#111111"/><circle cx="238" cy="326" r="8" fill="#111111"/><circle cx="274" cy="326" r="8" fill="#111111"/><circle cx="310" cy="326" r="8" fill="#111111"/><circle cx="346" cy="326" r="8" fill="#111111"/>
+      </g>
+      <text class="ui" x="107" y="54.5" font-size="64" font-weight="700" dominant-baseline="middle">EzSplitBill</text>
+      <g transform="translate(0 145)">
+        <rect x="4" y="4" width="884" height="172" fill="#111111"/>
+        <rect width="884" height="172" fill="#fffcd5" stroke="#111111" stroke-width="4"/>
+        <text class="ui" x="32" y="64" font-size="34" font-weight="700">Enter a receipt once. Share a link.</text>
+        <text class="ui" x="32" y="118" font-size="34" font-weight="700">Everyone calculates their own share.</text>
+      </g>
+      <text class="ui" x="0" y="353" font-size="26" font-weight="400" opacity="0.75" dominant-baseline="hanging">ezsplitbill.vercel.app</text>
+    </g>
+  </g>
+</svg>

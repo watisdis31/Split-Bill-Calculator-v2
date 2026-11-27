@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /how-it-works
+Allow: /login
+Allow: /register
+Disallow: /dashboard
+Disallow: /bills
+Disallow: /bill/s/
+
+Sitemap: https://ezsplitbill.vercel.app/sitemap.xml

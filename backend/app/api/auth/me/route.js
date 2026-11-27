@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const user = await getSessionUser();
     if (!user) {
-      return jsonError("Unauthorized", 401);
+      return jsonSuccess("Not authenticated", { user: null });
     }
     return jsonSuccess("Authenticated", { user: publicUser(user) });
   } catch (error) {

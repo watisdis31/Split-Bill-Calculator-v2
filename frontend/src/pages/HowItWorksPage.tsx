@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 import { Layout } from "../components/Layout";
+import { PageMeta } from "../seo/PageMeta";
+import { PAGE_SEO } from "../seo/siteMeta";
 
 export function HowItWorksPage() {
   return (
     <Layout guest>
+      <PageMeta {...PAGE_SEO.howItWorks} />
       <h1 className="page-title">How It Works</h1>
 
       <section className="card">
