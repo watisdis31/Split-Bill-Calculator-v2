@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { InfoLinkButtons } from "../components/InfoLinkButtons";
 import { Layout } from "../components/Layout";
 import { useAuth } from "../hooks/useAuth";
 import { PageMeta } from "../seo/PageMeta";
@@ -29,12 +30,7 @@ export function HomePage() {
               </Link>
             </>
           )}
-          <Link className="btn btn-secondary" to="/how-it-works">
-            How It Works
-          </Link>
-          <Link className="btn btn-secondary" to="/privacy">
-            Privacy
-          </Link>
+          <InfoLinkButtons />
         </div>
       </section>
     </Layout>
