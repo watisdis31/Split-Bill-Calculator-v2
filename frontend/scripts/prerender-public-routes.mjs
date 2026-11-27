@@ -34,6 +34,7 @@ const homeMain = `
     <div class="actions" style="margin-top: 1rem">
       <a class="btn" href="/bills/new">Create a bill</a>
       <a class="btn btn-secondary" href="/how-it-works">How It Works</a>
+      <a class="btn btn-secondary" href="/privacy">Privacy</a>
     </div>
   </section>`;
 
@@ -50,6 +51,43 @@ const howItWorksMain = `
       <li>Review the bill total and share the link with your friends.</li>
       <li>Each person opens the bill, selects what they ordered, and calculates their share.</li>
     </ol>
+  </section>`;
+
+const privacyMain = `
+  <header class="privacy-hero">
+    <h1 class="page-title privacy-hero-title">Privacy</h1>
+    <p class="privacy-hero-lead">Short version: we barely know you exist.</p>
+  </header>
+  <section class="card privacy-summary-card" aria-label="Privacy at a glance">
+    <p>Username and password only. Receipt photos are not stored. Bills stay private until you share. One login cookie, no ads, no tracking, and we never sell your data.</p>
+  </section>
+  <section class="card">
+    <div class="privacy-card-head">
+      <span class="privacy-badge" aria-hidden="true">1</span>
+      <h2>Your account</h2>
+    </div>
+    <p class="muted">EzSplitBill keeps things simple. To sign up you only need a <strong>username and password</strong>. We don't ask for your email, name, or phone number, and your account isn't connected to Google, social media, or anything else. Your password is encrypted, so even we can't see it.</p>
+  </section>
+  <section class="card">
+    <div class="privacy-card-head">
+      <span class="privacy-badge" aria-hidden="true">2</span>
+      <h2>Receipt scans</h2>
+    </div>
+    <p class="muted">When you scan a receipt, the photo is only used to read the items and is <strong>never saved</strong>.</p>
+  </section>
+  <section class="card">
+    <div class="privacy-card-head">
+      <span class="privacy-badge" aria-hidden="true">3</span>
+      <h2>Your bills</h2>
+    </div>
+    <p class="muted">Bills are only stored if you sign in and save them, and they <strong>stay private</strong> unless you share the link yourself. Anyone with that link can view the bill.</p>
+  </section>
+  <section class="card">
+    <div class="privacy-card-head">
+      <span class="privacy-badge" aria-hidden="true">4</span>
+      <h2>Cookies and tracking</h2>
+    </div>
+    <p class="muted">We use <strong>one cookie</strong> just to keep you logged in. <strong>No ads</strong>, <strong>no tracking</strong>, and we <strong>never sell your data</strong>.</p>
   </section>`;
 
 function injectRoot(html, shellHtml) {
@@ -111,4 +149,20 @@ const howDir = join(distDir, "how-it-works");
 mkdirSync(howDir, { recursive: true });
 writeFileSync(join(howDir, "index.html"), howHtml);
 
-console.log("Prerendered / and /how-it-works HTML shells");
+let privacyHtml = readFileSync(indexPath, "utf8");
+privacyHtml = setTitleAndDescription(privacyHtml, {
+  title: "Privacy | EzSplitBill",
+  description:
+    "How EzSplitBill handles your account, receipt scans, saved bills, and the single login cookie we use.",
+  path: "/privacy",
+});
+privacyHtml = injectRoot(
+  privacyHtml,
+  staticShell({ title: "privacy", mainHtml: privacyMain })
+);
+
+const privacyDir = join(distDir, "privacy");
+mkdirSync(privacyDir, { recursive: true });
+writeFileSync(join(privacyDir, "index.html"), privacyHtml);
+
+console.log("Prerendered /, /how-it-works, and /privacy HTML shells");
