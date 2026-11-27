@@ -1,0 +1,18 @@
+{
+  "specVersion": "0.91",
+  "entries": [
+    {
+      "identifier": "urn:air:ezsplitbill.vercel.app:llms-txt",
+      "displayName": "EzSplitBill site summary (llms.txt)",
+      "type": "text/markdown; profile=\"urn:air:agent-skills\"",
+      "url": "https://ezsplitbill.vercel.app/llms.txt",
+      "description": "Markdown summary of EzSplitBill for AI agents and registries.",
+      "representativeQueries": [
+        "How does EzSplitBill split a restaurant receipt?",
+        "Can friends calculate their share without creating an account?",
+        "How do I share a bill link with my group?"
+      ],
+      "tags": ["finance", "split-bill", "receipts"]
+    }
+  ]
+}
