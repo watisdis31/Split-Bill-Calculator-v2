@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { InfoLinkButtons } from "../components/InfoLinkButtons";
 import { Layout } from "../components/Layout";
 import { PageMeta } from "../seo/PageMeta";
 import { PAGE_SEO } from "../seo/siteMeta";
@@ -16,9 +17,7 @@ export function NotFoundPage() {
           <Link className="btn" to="/">
             Back to home
           </Link>
-          <Link className="btn btn-secondary" to="/how-it-works">
-            How It Works
-          </Link>
+          <InfoLinkButtons />
         </div>
       </section>
     </Layout>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { InfoLinkButtons } from "../components/InfoLinkButtons";
 import { Layout, Button, ConfirmDialog } from "../components/Layout";
 import { OpenBillButton } from "../components/OpenBillButton";
 import { BillSection } from "../components/BillSection";
@@ -139,9 +140,7 @@ export function DashboardPage() {
         </>
       )}
       <div className="actions" style={{ marginTop: "1rem" }}>
-        <Link className="btn btn-secondary" to="/how-it-works">
-          How It Works
-        </Link>
+        <InfoLinkButtons />
       </div>
     </Layout>
   );
