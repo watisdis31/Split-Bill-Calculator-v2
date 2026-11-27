@@ -5,6 +5,8 @@ import { AlertMessage, FieldError } from "../components/Feedback";
 import { PasswordInput } from "../components/PasswordInput";
 import { getErrorMessage, useAuth } from "../hooks/useAuth";
 import { safeRedirectPath } from "../utils/redirect";
+import { PageMeta } from "../seo/PageMeta";
+import { PAGE_SEO } from "../seo/siteMeta";
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -46,6 +48,7 @@ export function LoginPage() {
 
   return (
     <Layout guest>
+      <PageMeta {...PAGE_SEO.login} />
       <h1 className="page-title">Login</h1>
       <section className="card">
         <form className="stack" onSubmit={(e) => void onSubmit(e)}>
