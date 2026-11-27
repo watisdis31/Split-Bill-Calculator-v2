@@ -96,7 +96,7 @@ export const api = {
     return request<Record<string, never>>("/api/auth/logout", { method: "POST" });
   },
   me() {
-    return request<{ user: User }>("/api/auth/me");
+    return request<{ user: User | null }>("/api/auth/me");
   },
   currencies() {
     return request<{ currencies: Currency[] }>("/api/currencies");

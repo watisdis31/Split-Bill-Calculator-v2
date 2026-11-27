@@ -16,7 +16,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 async function restoreSession() {
   const res = await api.me();
-  return res.data.user;
+  return res.data.user ?? null;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

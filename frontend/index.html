@@ -2,16 +2,57 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EzSplitBill — Split receipts fairly</title>
+    <meta
+      name="description"
+      content="Enter a receipt once. Share a link. Everyone calculates their own share."
+    />
+    <link rel="canonical" href="https://ezsplitbill.vercel.app/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="EzSplitBill" />
+    <meta property="og:title" content="EzSplitBill — Split receipts fairly" />
+    <meta
+      property="og:description"
+      content="Enter a receipt once. Share a link. Everyone calculates their own share."
+    />
+    <meta property="og:url" content="https://ezsplitbill.vercel.app/" />
+    <meta property="og:image" content="https://ezsplitbill.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="EzSplitBill — Split receipts fairly" />
+    <meta
+      name="twitter:description"
+      content="Enter a receipt once. Share a link. Everyone calculates their own share."
+    />
+    <meta name="twitter:image" content="https://ezsplitbill.vercel.app/og-image.png" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "EzSplitBill",
+        "url": "https://ezsplitbill.vercel.app/",
+        "description": "Enter a receipt once. Share a link. Everyone calculates their own share.",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web"
+      }
+    </script>
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#F4F1EA" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>EzSplitBill</title>
   </head>
   <body>
+    <noscript>
+      <div style="padding: 1.5rem; max-width: 42rem; margin: 0 auto; font-family: system-ui, sans-serif">
+        <h1>EzSplitBill</h1>
+        <p>Enter a receipt once. Share a link. Everyone calculates their own share.</p>
+        <p><a href="/how-it-works">How it works</a></p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
