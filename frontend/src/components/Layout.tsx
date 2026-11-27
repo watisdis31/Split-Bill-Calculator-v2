@@ -106,9 +106,6 @@ export function Layout({
           <div className="header-actions">
             {loading ? null : user ? (
               <>
-                <NavLink to="/how-it-works" className="btn btn-secondary">
-                  How It Works
-                </NavLink>
                 <NavLink to="/dashboard" className="btn btn-secondary">
                   Bills
                 </NavLink>
@@ -118,9 +115,6 @@ export function Layout({
               </>
             ) : (
               <>
-                <NavLink to="/how-it-works" className="btn btn-secondary">
-                  How It Works
-                </NavLink>
                 <NavLink to="/login" end className="btn btn-secondary">
                   Login
                 </NavLink>
@@ -150,9 +144,6 @@ export function Layout({
               >
                 {user ? (
                   <>
-                    <NavLink to="/how-it-works" end className={menuLinkClass} onClick={() => setMenuOpen(false)}>
-                      How It Works
-                    </NavLink>
                     <NavLink to="/dashboard" end className={menuLinkClass} onClick={() => setMenuOpen(false)}>
                       Bills
                     </NavLink>
@@ -162,9 +153,6 @@ export function Layout({
                   </>
                 ) : (
                   <>
-                    <NavLink to="/how-it-works" end className={menuLinkClass} onClick={() => setMenuOpen(false)}>
-                      How It Works
-                    </NavLink>
                     <NavLink to="/login" end className={menuLinkClass} onClick={() => setMenuOpen(false)}>
                       Login
                     </NavLink>
