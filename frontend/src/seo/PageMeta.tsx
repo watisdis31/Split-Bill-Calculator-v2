@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 import type { PageSeo } from "./siteMeta";
 import { DEFAULT_OG_IMAGE, SITE_NAME, canonicalUrl } from "./siteMeta";
 
-export function PageMeta({ title, description, path, noindex }: PageSeo) {
+export function PageMeta({ title, description, path, noindex, jsonLd }: PageSeo) {
   const url = path ? canonicalUrl(path) : undefined;
 
   return (
@@ -23,6 +23,11 @@ export function PageMeta({ title, description, path, noindex }: PageSeo) {
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={DEFAULT_OG_IMAGE} />
+      {jsonLd ? (
+        <script id="ld-json" type="application/ld+json">
+          {JSON.stringify(jsonLd)}
+        </script>
+      ) : null}
     </Helmet>
   );
 }

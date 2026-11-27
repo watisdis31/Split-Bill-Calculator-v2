@@ -1,8 +1,7 @@
 User-agent: *
 Allow: /
 Allow: /how-it-works
-Allow: /login
-Allow: /register
+Allow: /privacy
 Disallow: /dashboard
 Disallow: /bills
 Disallow: /bill/s/
